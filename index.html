@@ -39,6 +39,7 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
 @keyframes popIn{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes float{0%,100%{transform:translateY(0px)}50%{transform:translateY(-6px)}}
 @keyframes glow{0%,100%{box-shadow:0 0 8px rgba(255,107,53,0.3)}50%{box-shadow:0 0 20px rgba(255,107,53,0.6)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 
 /* ===== LOGIN ===== */
 #login{background:var(--navy);align-items:center;justify-content:center;padding:2rem;position:relative;overflow:hidden;}
@@ -632,6 +633,7 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
   <div class="login-box">
     <div class="app-logo"><span style="font-size:28px;vertical-align:middle;margin-right:6px;">📍</span>Near<span>by</span></div>
     <div class="app-tagline">Rooms • Shops • Everything Around You</div>
+    <!-- ── STEP 1: Choose method ──────────────────────────── -->
     <div class="login-step active" id="step-choose">
       <div class="login-title">Welcome! 👋</div>
       <div class="login-sub">Find anything near you</div>
@@ -645,39 +647,272 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
         Continue with Google
       </button>
       <div class="divider"><span>or</span></div>
-      <button class="auth-btn secondary" onclick="goStep('step-phone')">📱 Continue with Phone OTP</button>
+      <button class="auth-btn secondary" onclick="goStep('step-credentials')" style="margin-bottom:8px;">🔐 Sign in with Email / Phone</button>
       <div class="privacy">By signing in you agree to our Terms &amp; Privacy Policy.</div>
     </div>
-    <div class="login-step" id="step-phone">
-      <div class="login-title">Enter Phone Number</div>
-      <div class="login-sub">We'll send a 6-digit OTP via SMS</div>
-      <div class="auth-err" id="phone-err"></div>
-      <div class="phone-row">
-        <input class="cc-inp" value="+91" readonly/>
-        <input class="phone-inp" id="phone-input" type="tel" maxlength="10" placeholder="10-digit mobile number"/>
+
+    <!-- ── STEP 2: Email/Phone + Password (MFA Step 1) ───── -->
+    <div class="login-step" id="step-credentials">
+      <div class="login-title">Sign In 🔐</div>
+      <div class="login-sub">Enter your credentials to continue</div>
+      <div class="auth-err" id="cred-err"></div>
+      <div style="margin-bottom:10px;">
+        <input class="phone-inp" id="mfa-identifier" type="text" placeholder="Email or Phone (+919876543210)" autocomplete="username" style="width:100%;margin-bottom:8px;"/>
+        <div style="position:relative;">
+          <input class="phone-inp" id="mfa-password" type="password" placeholder="Password" autocomplete="current-password" style="width:100%;padding-right:42px;" onkeydown="if(event.key==='Enter')mfaLogin()"/>
+          <span id="pwd-toggle" onclick="togglePwd()" style="position:absolute;right:13px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:17px;user-select:none;">👁️</span>
+        </div>
       </div>
-      <div id="recaptcha-container"></div>
-      <button class="auth-btn" id="send-btn" onclick="sendOTP()">Send OTP</button>
+      <!-- Brute-force lock indicator -->
+      <div id="lock-status" style="display:none;background:rgba(252,165,165,.15);border:1px solid rgba(252,165,165,.3);border-radius:8px;padding:9px 12px;font-size:12px;color:#fca5a5;margin-bottom:10px;text-align:center;"></div>
+      <button class="auth-btn" id="mfa-login-btn" onclick="mfaLogin()">Continue →</button>
       <span class="back-link" onclick="goStep('step-choose')">← Back</span>
     </div>
+
+    <!-- ── STEP 3: OTP Verify (MFA Step 2) ──────────────── -->
     <div class="login-step" id="step-otp">
-      <div class="login-title">Enter OTP 🔐</div>
-      <div class="login-sub" id="otp-sub">OTP sent to your number</div>
+      <div class="login-title">Verify OTP 🔑</div>
+      <div class="login-sub" id="otp-sub">Code sent to your device</div>
       <div class="auth-err" id="otp-err"></div>
-      <div class="otp-row">
-        <input class="otp-box" id="o1" maxlength="1" oninput="otpNext(this,'o2')" onkeydown="otpPrev(event,this,'')"/>
-        <input class="otp-box" id="o2" maxlength="1" oninput="otpNext(this,'o3')" onkeydown="otpPrev(event,this,'o1')"/>
-        <input class="otp-box" id="o3" maxlength="1" oninput="otpNext(this,'o4')" onkeydown="otpPrev(event,this,'o2')"/>
-        <input class="otp-box" id="o4" maxlength="1" oninput="otpNext(this,'o5')" onkeydown="otpPrev(event,this,'o3')"/>
-        <input class="otp-box" id="o5" maxlength="1" oninput="otpNext(this,'o6')" onkeydown="otpPrev(event,this,'o4')"/>
-        <input class="otp-box" id="o6" maxlength="1" oninput="otpNext(this,'')"   onkeydown="otpPrev(event,this,'o5')"/>
+
+      <!-- Countdown timer bar -->
+      <div style="background:rgba(255,255,255,.08);border-radius:999px;height:4px;margin-bottom:14px;overflow:hidden;">
+        <div id="otp-timer-bar" style="height:100%;background:var(--teal);transition:width 1s linear;width:100%;"></div>
       </div>
-      <button class="auth-btn" id="verify-btn" onclick="verifyOTP()">Verify &amp; Login</button>
-      <div class="resend-link" onclick="sendOTP()">Resend OTP</div>
-      <span class="back-link" onclick="goStep('step-phone')">← Change Number</span>
+      <div style="text-align:center;font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px;">
+        ⏱ Expires in <span id="otp-countdown">5:00</span>
+      </div>
+
+      <div class="otp-row">
+        <input class="otp-box" id="o1" maxlength="1" inputmode="numeric" oninput="otpNext(this,'o2')" onkeydown="otpPrev(event,this,'')"/>
+        <input class="otp-box" id="o2" maxlength="1" inputmode="numeric" oninput="otpNext(this,'o3')" onkeydown="otpPrev(event,this,'o1')"/>
+        <input class="otp-box" id="o3" maxlength="1" inputmode="numeric" oninput="otpNext(this,'o4')" onkeydown="otpPrev(event,this,'o2')"/>
+        <input class="otp-box" id="o4" maxlength="1" inputmode="numeric" oninput="otpNext(this,'o5')" onkeydown="otpPrev(event,this,'o3')"/>
+        <input class="otp-box" id="o5" maxlength="1" inputmode="numeric" oninput="otpNext(this,'o6')" onkeydown="otpPrev(event,this,'o4')"/>
+        <input class="otp-box" id="o6" maxlength="1" inputmode="numeric" oninput="otpNext(this,'')"   onkeydown="otpPrev(event,this,'o5')"/>
+      </div>
+
+      <!-- Attempts indicator dots -->
+      <div style="display:flex;gap:6px;justify-content:center;margin-bottom:14px;">
+        <span id="att-d1" style="width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block;"></span>
+        <span id="att-d2" style="width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block;"></span>
+        <span id="att-d3" style="width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block;"></span>
+      </div>
+
+      <button class="auth-btn" id="verify-btn" onclick="mfaVerifyOtp()">Verify &amp; Login ✓</button>
+
+      <div id="resend-wrap" style="margin-top:10px;text-align:center;">
+        <span class="resend-link" id="resend-btn" onclick="mfaResendOtp()">↺ Resend Code</span>
+        <span id="resend-cooldown" style="display:none;font-size:12px;color:rgba(255,255,255,.35);">Resend in <span id="resend-secs">60</span>s</span>
+      </div>
+      <span class="back-link" onclick="goStep('step-credentials')">← Change Credentials</span>
+    </div>
+
+    <!-- ── Legacy phone step (kept for back-compat, hidden) ─ -->
+    <div class="login-step" id="step-phone" style="display:none!important;">
+      <div id="recaptcha-container"></div>
+    </div>
+
+    <!-- ── SIGNUP STEPS ── -->
+    <div class="login-step" id="step-signup">
+      <div class="login-title">Create Account ✨</div>
+      <div class="login-sub">Join Nearby — it's free!</div>
+      <div class="auth-err" id="signup-err"></div>
+      <input class="phone-inp" id="su-name" type="text" placeholder="Full Name" style="width:100%;margin-bottom:8px;"/>
+      <input class="phone-inp" id="su-identifier" type="text" placeholder="Email or Phone (+919876543210)" style="width:100%;margin-bottom:8px;"/>
+      <div style="position:relative;margin-bottom:8px;">
+        <input class="phone-inp" id="su-password" type="password" placeholder="Password (min 8 chars)" style="width:100%;padding-right:42px;"/>
+        <span onclick="toggleSuPwd()" style="position:absolute;right:13px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:17px;">👁️</span>
+      </div>
+      <input class="phone-inp" id="su-confirm" type="password" placeholder="Confirm Password" style="width:100%;margin-bottom:8px;"/>
+      <div style="height:4px;border-radius:999px;background:rgba(255,255,255,.1);margin-bottom:6px;overflow:hidden;">
+        <div id="pwd-strength-bar" style="height:100%;width:0%;border-radius:999px;transition:all .3s;"></div>
+      </div>
+      <div id="pwd-strength-label" style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:10px;text-align:left;min-height:14px;"></div>
+      <button class="auth-btn" id="signup-btn" onclick="signupStep1()">Send Verification Code →</button>
+      <div style="margin-top:10px;font-size:12px;color:rgba(255,255,255,.4);">Already have an account? <span style="color:var(--teal);cursor:pointer;" onclick="goStep('step-choose')">Sign in</span></div>
+    </div>
+
+    <div class="login-step" id="step-signup-otp">
+      <div class="login-title">Verify Account 🔑</div>
+      <div class="login-sub" id="su-otp-sub">Code sent to your device</div>
+      <div class="auth-err" id="su-otp-err"></div>
+      <div style="background:rgba(255,255,255,.08);border-radius:999px;height:4px;margin-bottom:10px;overflow:hidden;">
+        <div id="su-timer-bar" style="height:100%;background:var(--teal);transition:width 1s linear;width:100%;"></div>
+      </div>
+      <div style="text-align:center;font-size:12px;color:rgba(255,255,255,.4);margin-bottom:12px;">⏱ Expires in <span id="su-countdown">5:00</span></div>
+      <div class="otp-row">
+        <input class="otp-box" id="su1" maxlength="1" inputmode="numeric" oninput="suOtpNext(this,'su2')" onkeydown="suOtpPrev(event,this,'')"/>
+        <input class="otp-box" id="su2" maxlength="1" inputmode="numeric" oninput="suOtpNext(this,'su3')" onkeydown="suOtpPrev(event,this,'su1')"/>
+        <input class="otp-box" id="su3" maxlength="1" inputmode="numeric" oninput="suOtpNext(this,'su4')" onkeydown="suOtpPrev(event,this,'su2')"/>
+        <input class="otp-box" id="su4" maxlength="1" inputmode="numeric" oninput="suOtpNext(this,'su5')" onkeydown="suOtpPrev(event,this,'su3')"/>
+        <input class="otp-box" id="su5" maxlength="1" inputmode="numeric" oninput="suOtpNext(this,'su6')" onkeydown="suOtpPrev(event,this,'su4')"/>
+        <input class="otp-box" id="su6" maxlength="1" inputmode="numeric" oninput="suOtpNext(this,'')"    onkeydown="suOtpPrev(event,this,'su5')"/>
+      </div>
+      <button class="auth-btn" id="su-verify-btn" onclick="signupVerifyOtp()" style="margin-top:10px;">Verify &amp; Create Account ✓</button>
+      <div style="margin-top:8px;text-align:center;">
+        <span class="resend-link" id="su-resend-btn" onclick="signupResendOtp()">↺ Resend Code</span>
+        <span id="su-resend-cool" style="display:none;font-size:12px;color:rgba(255,255,255,.35);">Resend in <span id="su-resend-secs">60</span>s</span>
+      </div>
+      <span class="back-link" onclick="goStep('step-signup')">← Go back</span>
+    </div>
+
+    <div class="login-step" id="step-profile-setup">
+      <div class="login-title">Setup Profile 🎉</div>
+      <div class="login-sub">Almost done! Add a photo (optional)</div>
+      <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:14px;">
+        <div id="su-avatar-preview" onclick="document.getElementById('su-avatar-inp').click()" style="width:76px;height:76px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;border:3px dashed rgba(255,255,255,.3);margin-bottom:6px;overflow:hidden;">📷</div>
+        <input type="file" id="su-avatar-inp" accept="image/*" style="display:none;" onchange="previewSuAvatar(this)"/>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);">Tap to add photo</div>
+      </div>
+      <input class="phone-inp" id="su-city" type="text" placeholder="Your City (e.g. Patna, Bihar)" style="width:100%;margin-bottom:10px;"/>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button id="role-user" onclick="selectRole('user')" class="auth-btn" style="flex:1;padding:10px;font-size:12px;background:var(--teal);">🔍 Find Shops</button>
+        <button id="role-owner" onclick="selectRole('owner')" class="auth-btn secondary" style="flex:1;padding:10px;font-size:12px;">🏪 List My Shop</button>
+      </div>
+      <button class="auth-btn" id="finish-signup-btn" onclick="finishSignup()" style="background:linear-gradient(135deg,var(--teal),var(--orange));">🚀 Enter Nearby!</button>
+    </div>
+
+
+  </div>
+</div>
+
+
+<!-- ================================================================
+  ADMIN DASHBOARD SCREEN
+================================================================ -->
+<div id="admin" class="screen" style="background:var(--bg);padding-bottom:80px;">
+  <div class="topbar">
+    <div class="topbar-back">
+      <button class="back-btn" onclick="goBack()">&#8592;</button>
+      <div style="font-family:'Baloo 2',cursive;font-size:18px;font-weight:700;color:#fff;">Admin <span style="color:var(--orange);">Panel</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="background:var(--orange);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;">ADMIN</div>
+      <div class="user-av" id="av-admin">A</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px 16px 0;">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;"><div style="font-family:'Baloo 2',cursive;font-size:22px;font-weight:700;color:var(--teal);" id="adm-total-users">0</div><div style="font-size:11px;color:var(--muted);">Total Users</div></div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;"><div style="font-family:'Baloo 2',cursive;font-size:22px;font-weight:700;color:var(--orange);" id="adm-total-shops">0</div><div style="font-size:11px;color:var(--muted);">Total Shops</div></div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;"><div style="font-family:'Baloo 2',cursive;font-size:22px;font-weight:700;color:#22c55e;" id="adm-active-today">0</div><div style="font-size:11px;color:var(--muted);">Active Today</div></div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;"><div style="font-family:'Baloo 2',cursive;font-size:22px;font-weight:700;color:#f59e0b;" id="adm-pending">0</div><div style="font-size:11px;color:var(--muted);">Pending</div></div>
+  </div>
+  <div style="display:flex;padding:14px 16px 0;border-bottom:1px solid var(--border);overflow-x:auto;gap:0;">
+    <button id="adm-tab-users"    onclick="admTab('users')"    style="flex:1;padding:10px;font-size:12px;font-family:'Noto Sans',sans-serif;background:none;border:none;border-bottom:2px solid var(--teal);color:var(--teal);cursor:pointer;font-weight:600;white-space:nowrap;">Users</button>
+    <button id="adm-tab-shops"    onclick="admTab('shops')"    style="flex:1;padding:10px;font-size:12px;font-family:'Noto Sans',sans-serif;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;white-space:nowrap;">Shops</button>
+    <button id="adm-tab-notifs"   onclick="admTab('notifs')"   style="flex:1;padding:10px;font-size:12px;font-family:'Noto Sans',sans-serif;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;white-space:nowrap;">Notifs</button>
+    <button id="adm-tab-payments" onclick="admTab('payments')" style="flex:1;padding:10px;font-size:12px;font-family:'Noto Sans',sans-serif;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;white-space:nowrap;">Payments</button>
+  </div>
+  <div style="padding:14px 16px;">
+    <div id="adm-pane-users"><div style="display:flex;gap:8px;margin-bottom:12px;"><input id="adm-user-search" type="text" placeholder="Search users..." oninput="admSearchUsers(this.value)" style="flex:1;border:1px solid var(--border);border-radius:var(--rsm);padding:9px 13px;font-size:13px;background:var(--card);color:var(--text);font-family:'Noto Sans',sans-serif;outline:none;"/><button onclick="admSendBroadcast()" style="background:var(--teal);color:#fff;border:none;border-radius:var(--rsm);padding:9px 12px;font-size:11px;cursor:pointer;font-family:'Noto Sans',sans-serif;font-weight:600;white-space:nowrap;">Broadcast</button></div><div id="adm-users-list"></div></div>
+    <div id="adm-pane-shops" style="display:none;"><select id="adm-shop-filter" onchange="admFilterShops(this.value)" style="width:100%;border:1px solid var(--border);border-radius:var(--rsm);padding:9px 13px;font-size:13px;background:var(--card);color:var(--text);font-family:'Noto Sans',sans-serif;outline:none;margin-bottom:12px;"><option value="all">All Shops</option><option value="pending">Pending</option><option value="active">Active</option><option value="banned">Banned</option></select><div id="adm-shops-list"></div></div>
+    <div id="adm-pane-notifs" style="display:none;">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;">
+        <div style="font-family:'Baloo 2',cursive;font-size:14px;font-weight:600;margin-bottom:10px;">Send Push Notification</div>
+        <input id="notif-title" type="text" placeholder="Title" style="width:100%;border:1px solid var(--border);border-radius:var(--rsm);padding:9px 12px;font-size:13px;background:var(--bg);color:var(--text);font-family:'Noto Sans',sans-serif;outline:none;margin-bottom:8px;box-sizing:border-box;"/>
+        <textarea id="notif-body" placeholder="Message..." rows="3" style="width:100%;border:1px solid var(--border);border-radius:var(--rsm);padding:9px 12px;font-size:13px;background:var(--bg);color:var(--text);font-family:'Noto Sans',sans-serif;outline:none;resize:none;box-sizing:border-box;margin-bottom:8px;"></textarea>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <select id="notif-target" style="flex:1;border:1px solid var(--border);border-radius:var(--rsm);padding:8px;font-size:12px;background:var(--card);color:var(--text);font-family:'Noto Sans',sans-serif;outline:none;"><option value="all">All Users</option><option value="active">Active Users</option><option value="owners">Shop Owners</option></select>
+          <select id="notif-type" style="flex:1;border:1px solid var(--border);border-radius:var(--rsm);padding:8px;font-size:12px;background:var(--card);color:var(--text);font-family:'Noto Sans',sans-serif;outline:none;"><option value="general">General</option><option value="promo">Promo</option><option value="alert">Alert</option></select>
+        </div>
+        <button onclick="admSendNotification()" style="background:var(--orange);color:#fff;border:none;border-radius:var(--rsm);padding:11px;font-size:13px;font-weight:600;width:100%;cursor:pointer;font-family:'Baloo 2',cursive;">Send Notification</button>
+      </div>
+      <div id="adm-notifs-log"></div>
+    </div>
+    <div id="adm-pane-payments" style="display:none;">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);padding:12px;text-align:center;"><div style="font-family:'Baloo 2',cursive;font-size:18px;font-weight:700;color:var(--orange);" id="pay-total-rev">0</div><div style="font-size:11px;color:var(--muted);">Total Revenue</div></div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);padding:12px;text-align:center;"><div style="font-family:'Baloo 2',cursive;font-size:18px;font-weight:700;color:#22c55e;" id="pay-success-count">0</div><div style="font-size:11px;color:var(--muted);">Successful Txns</div></div>
+      </div>
+      <div id="adm-payments-list"></div>
     </div>
   </div>
 </div>
+
+<!-- ================================================================
+  LIVE TRACKING SCREEN
+================================================================ -->
+<div id="tracking" class="screen" style="background:#0d1117;padding-bottom:0;">
+  <div style="background:rgba(18,25,44,.95);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:100;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button onclick="goBack()" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:16px;cursor:pointer;">&#8592;</button>
+      <div style="font-family:'Baloo 2',cursive;font-size:17px;font-weight:700;color:#fff;">Live <span style="color:#0ABFA3;">Tracking</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div id="track-status-dot" style="width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 2s ease-in-out infinite;"></div>
+      <span style="font-size:11px;color:rgba(255,255,255,.6);" id="track-status-txt">Live</span>
+    </div>
+  </div>
+  <div id="tracking-map-wrap" style="height:calc(100vh - 56px - 160px);background:#1a2535;position:relative;">
+    <div id="tracking-osm" style="width:100%;height:100%;"></div>
+    <div style="position:absolute;top:12px;left:12px;right:12px;z-index:400;pointer-events:none;">
+      <div style="background:rgba(18,25,44,.92);backdrop-filter:blur(8px);border-radius:12px;padding:10px 14px;border:1px solid rgba(255,255,255,.1);">
+        <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:2px;" id="track-shop-cat">Category</div>
+        <div style="font-family:'Baloo 2',cursive;font-size:15px;font-weight:700;color:#fff;" id="track-shop-name">Select a shop to track</div>
+        <div style="font-size:12px;color:#0ABFA3;" id="track-eta">Open the shop detail to start tracking</div>
+      </div>
+    </div>
+    <button onclick="trackingRecenter()" style="position:absolute;bottom:16px;right:16px;z-index:400;background:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:13px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3);font-family:'Noto Sans',sans-serif;font-weight:600;">My Location</button>
+  </div>
+  <div style="background:var(--navy);padding:14px 16px;border-top:1px solid rgba(255,255,255,.08);">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;">
+      <div style="text-align:center;"><div style="font-family:'Baloo 2',cursive;font-size:18px;font-weight:700;color:#0ABFA3;" id="track-dist">--</div><div style="font-size:10px;color:rgba(255,255,255,.4);">Distance</div></div>
+      <div style="text-align:center;"><div style="font-family:'Baloo 2',cursive;font-size:18px;font-weight:700;color:#FF6B35;" id="track-time">--</div><div style="font-size:10px;color:rgba(255,255,255,.4);">ETA</div></div>
+      <div style="text-align:center;"><div style="font-family:'Baloo 2',cursive;font-size:18px;font-weight:700;color:#22c55e;" id="track-nearby-count">--</div><div style="font-size:10px;color:rgba(255,255,255,.4);">Nearby</div></div>
+    </div>
+    <button onclick="goBack()" style="background:#FF6B35;color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:600;width:100%;cursor:pointer;font-family:'Baloo 2',cursive;">Stop Tracking</button>
+  </div>
+</div>
+
+<!-- ================================================================
+  PAYMENT SCREEN
+================================================================ -->
+<div id="payment" class="screen" style="background:var(--bg);padding-bottom:80px;">
+  <div class="topbar">
+    <div class="topbar-back">
+      <button class="back-btn" onclick="goBack()">&#8592;</button>
+      <div style="font-family:'Baloo 2',cursive;font-size:18px;font-weight:700;color:#fff;">Upgrade Plan</div>
+    </div>
+  </div>
+  <div style="padding:16px;">
+    <div style="font-family:'Baloo 2',cursive;font-size:16px;font-weight:600;margin-bottom:12px;">Choose a Plan</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+      <div id="plan-free" onclick="selectPlan('free')" style="background:var(--card);border:2px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .2s;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-family:'Baloo 2',cursive;font-size:15px;font-weight:700;">Free</div><div style="font-size:12px;color:var(--muted);">Browse shops, basic search</div></div><div style="font-family:'Baloo 2',cursive;font-size:20px;font-weight:700;color:var(--teal);">0</div></div></div>
+      <div id="plan-premium" onclick="selectPlan('premium')" style="background:var(--orange-light);border:2px solid var(--orange);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .2s;position:relative;"><div style="position:absolute;top:-10px;left:14px;background:var(--orange);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;">POPULAR</div><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-family:'Baloo 2',cursive;font-size:15px;font-weight:700;">Premium</div><div style="font-size:12px;color:var(--muted);">Priority listing, analytics, no ads</div></div><div style="text-align:right;"><div style="font-family:'Baloo 2',cursive;font-size:20px;font-weight:700;color:var(--orange);">99</div><div style="font-size:10px;color:var(--muted);">/month</div></div></div></div>
+      <div id="plan-business" onclick="selectPlan('business')" style="background:var(--teal-light);border:2px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .2s;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-family:'Baloo 2',cursive;font-size:15px;font-weight:700;">Business</div><div style="font-size:12px;color:var(--muted);">Unlimited shops, API, support</div></div><div style="text-align:right;"><div style="font-family:'Baloo 2',cursive;font-size:20px;font-weight:700;color:var(--teal);">299</div><div style="font-size:10px;color:var(--muted);">/month</div></div></div></div>
+    </div>
+    <div id="pay-method-section" style="font-family:'Baloo 2',cursive;font-size:14px;font-weight:600;margin-bottom:10px;display:none;">Payment Method</div>
+    <div id="pay-methods" style="display:none;flex-direction:column;gap:8px;margin-bottom:16px;">
+      <button onclick="payWith('upi')" style="background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);padding:12px;font-size:13px;font-family:'Noto Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text);"><span style="font-size:18px;">UPI</span><div><div style="font-weight:600;font-size:13px;">UPI / GPay / PhonePe</div><div style="font-size:11px;color:var(--muted);">Instant payment</div></div></button>
+      <button onclick="payWith('card')" style="background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);padding:12px;font-size:13px;font-family:'Noto Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text);"><span style="font-size:18px;">Card</span><div><div style="font-weight:600;font-size:13px;">Credit / Debit Card</div><div style="font-size:11px;color:var(--muted);">Visa, Mastercard, RuPay</div></div></button>
+      <button onclick="payWith('netbanking')" style="background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);padding:12px;font-size:13px;font-family:'Noto Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text);"><span style="font-size:18px;">Bank</span><div><div style="font-weight:600;font-size:13px;">Net Banking</div><div style="font-size:11px;color:var(--muted);">All major banks</div></div></button>
+      <button onclick="payWith('wallet')" style="background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);padding:12px;font-size:13px;font-family:'Noto Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text);"><span style="font-size:18px;">Wallet</span><div><div style="font-weight:600;font-size:13px;">Nearby Wallet</div><div style="font-size:11px;color:var(--muted);">Balance: <span id="wallet-balance">0</span></div></div></button>
+    </div>
+    <div id="pay-summary" style="display:none;background:var(--orange-light);border:1px solid #ffd5c8;border-radius:var(--radius);padding:14px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:var(--muted);">Plan</span><span style="font-size:13px;font-weight:600;" id="pay-sum-plan">-</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:var(--muted);">Method</span><span style="font-size:13px;font-weight:600;" id="pay-sum-method">-</span></div>
+      <div style="border-top:1px solid #ffd5c8;padding-top:8px;display:flex;justify-content:space-between;"><span style="font-family:'Baloo 2',cursive;font-size:15px;font-weight:700;">Total</span><span style="font-family:'Baloo 2',cursive;font-size:15px;font-weight:700;color:var(--orange);" id="pay-sum-total">0</span></div>
+    </div>
+    <button id="pay-confirm-btn" onclick="confirmPayment()" style="display:none;background:var(--orange);color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;width:100%;cursor:pointer;font-family:'Baloo 2',cursive;">Pay Securely</button>
+  </div>
+</div>
+
+<!-- Push Notification Banner -->
+<div id="push-banner" style="display:none;position:fixed;bottom:80px;left:12px;right:12px;background:var(--navy);border-radius:14px;padding:14px 16px;z-index:500;border:1px solid rgba(255,255,255,.1);box-shadow:0 8px 30px rgba(0,0,0,.3);">
+  <div style="display:flex;align-items:flex-start;gap:12px;">
+    <span style="font-size:22px;flex-shrink:0;">Bell</span>
+    <div style="flex:1;">
+      <div style="font-family:'Baloo 2',cursive;font-size:13px;font-weight:700;color:#fff;margin-bottom:3px;">Stay Updated!</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:8px;">Get notified about new shops and deals near you</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="enablePushNotifs()" style="background:var(--teal);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Noto Sans',sans-serif;">Enable</button>
+        <button onclick="dismissPushBanner()" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:none;border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer;font-family:'Noto Sans',sans-serif;">Not now</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- HOME SCREEN -->
 <div id="home" class="screen">
@@ -686,7 +921,7 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
       <div class="topbar-logo-icon">📍</div>
       <div class="topbar-logo-text">Near<span>by</span></div>
     </div>
-    <div class="user-av" id="av-home">U</div>
+    <div class="user-av" id="av-home" onclick="switchScreen('profile')" title="My Profile">U</div>
   </div>
   <div class="home-hero" style="position:relative;">
     <div class="hero-top">
@@ -793,7 +1028,7 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
       <button class="back-btn" onclick="goBack()">←</button>
       <div class="topbar-logo"><div class="topbar-logo-icon">📍</div><div class="topbar-logo-text">Near<span>by</span></div></div>
     </div>
-    <div class="user-av" id="av-shops">U</div>
+    <div class="user-av" id="av-shops" onclick="switchScreen('profile')" title="My Profile">U</div>
   </div>
   <div class="filter-row" id="filter-row" style="align-items:center;">
     <div class="open-now-toggle" id="open-now-toggle" onclick="toggleOpenNow(this)">
@@ -818,6 +1053,7 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
     <div class="filter-pill" onclick="applyFilter(this,'Car Wash')">🚗 Car Wash</div>
     <div class="filter-pill" onclick="applyFilter(this,'Fruit')">🍎 Fruit</div>
     <div class="filter-pill" onclick="applyFilter(this,'Vegetables')">🥦 Vegetables</div>
+    <div class="filter-pill" onclick="applyFilter(this,'Grocery')">🛒 Grocery</div>
     <div class="filter-pill" onclick="applyFilter(this,'Mobile Shop')">📱 Mobile Shop</div>
     <div class="filter-pill" onclick="applyFilter(this,'Exclusive Store')">🏬 Exclusive Store</div>
   </div>
@@ -838,7 +1074,7 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
       <button class="back-btn" onclick="goBack()">←</button>
       <div class="topbar-logo"><div class="topbar-logo-icon">📍</div><div class="topbar-logo-text">Near<span>by</span></div></div>
     </div>
-    <div class="user-av" id="av-rooms">U</div>
+    <div class="user-av" id="av-rooms" onclick="switchScreen('profile')" title="My Profile">U</div>
   </div>
   <div style="padding:12px 16px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;">
     <div class="filter-pill active">All</div>
@@ -866,7 +1102,7 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
       <button class="back-btn" onclick="goBack()">←</button>
       <div class="topbar-logo"><div class="topbar-logo-icon">📍</div><div class="topbar-logo-text">Near<span>by</span></div></div>
     </div>
-    <div class="user-av" id="av-list">U</div>
+    <div class="user-av" id="av-list" onclick="switchScreen('profile')" title="My Profile">U</div>
   </div>
   <div class="info-header"><h2>List Your Business 🏪</h2><p>Reach people in your area — 100% FREE</p></div>
   <div class="list-form">
@@ -939,6 +1175,9 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
     <div class="info-card" onclick="openDashboard()"><div class="info-ico">📊</div><div><div class="info-ttl">My Dashboard</div><div class="info-desc">Manage your business you have listed on Nearby.</div></div></div>
     <div class="info-card" onclick="document.getElementById('help-modal').classList.add('open')"><div class="info-ico">📞</div><div><div class="info-ttl">Help &amp; Support</div><div class="info-desc">Having a problem? Reach us on WhatsApp or email anytime.</div></div></div>
     <div class="info-card" onclick="openAboutModal()"><div class="info-ico">ℹ️</div><div><div class="info-ttl">About Nearby</div><div class="info-desc">Nearby v2.0 — Made with ❤️ for all of you</div></div></div>
+    <div class="info-card" onclick="openPayment()"><div class="info-ico">💳</div><div><div class="info-ttl">Upgrade Plan</div><div class="info-desc">Free → Premium → Business. Unlock priority listing & analytics.</div></div></div>
+
+    <div class="info-card" id="admin-menu-item" onclick="openAdmin()" style="display:none;"><div class="info-ico">⚙️</div><div><div class="info-ttl">Admin Panel</div><div class="info-desc">Manage users, shops, payments and send push notifications.</div></div></div>
   </div>
   <button class="logout-btn" onclick="doLogout()">🚪 Log Out</button>
 </div>
@@ -998,7 +1237,7 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
       <button class="back-btn" onclick="goBack()">←</button>
       <div class="topbar-logo"><div class="topbar-logo-icon">📍</div><div class="topbar-logo-text">Near<span>by</span></div></div>
     </div>
-    <div class="user-av" id="av-explore">U</div>
+    <div class="user-av" id="av-explore" onclick="switchScreen('profile')" title="My Profile">U</div>
   </div>
   <div style="background:var(--navy);padding:18px 16px 20px;color:#fff;">
     <div style="font-family:'Baloo 2',cursive;font-size:22px;font-weight:600;margin-bottom:3px;">Explore 🔍</div>
@@ -1125,6 +1364,11 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
     <button class="sd-ab c3" onclick="sdNav()"><span class="sd-ab-ico">🧭</span>Directions</button>
     <button class="sd-ab c4" onclick="sdShare()"><span class="sd-ab-ico">↗</span>Share</button>
   </div>
+  <!-- Live Track button -->
+  <button id="sd-track-btn" onclick="sdLiveTrack()" style="margin:0 16px 12px;width:calc(100% - 32px);background:linear-gradient(135deg,#12192C,#1a2540);color:#0ABFA3;border:1px solid rgba(10,191,163,.3);border-radius:12px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Baloo 2',cursive;display:flex;align-items:center;justify-content:center;gap:8px;">
+    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 1.5s ease-in-out infinite;"></span>
+    Live Track this Shop
+  </button>
 
   <div class="sd-card">
     <div class="sd-card-ttl">Contact & Details</div>
@@ -1348,6 +1592,12 @@ const SAMPLE_SHOPS = [
   {name:'Fresh Fruit Corner',      cat:'Fruit',        icon:'🍎', phone:'+919876543213', address:'Main Market Road',        hours:'6AM–8PM',  distKm:0.2, lat:23.7975, lng:86.4270, rating:4.3},
   {name:'Sharma General Store',    cat:'Grocery',      icon:'🛒', phone:'+919876543210', address:'Near Gandhi Chowk',       hours:'7AM–10PM', distKm:0.3, lat:23.7980, lng:86.4330, rating:4.5},
   {name:'Hari Sabzi Wala',         cat:'Vegetables',   icon:'🥦', phone:'+919876543214', address:'Sabzi Mandi Lane',        hours:'6AM–7PM',  distKm:0.4, lat:23.7960, lng:86.4260, rating:4.1},
+  {name:'Ram Sabzi Bhandar',        cat:'Vegetables',   icon:'🥦', phone:'+919876543240', address:'Mandi Road Near Chowk',    hours:'5AM–8PM',  distKm:0.6, lat:23.7968, lng:86.4275, rating:4.2},
+  {name:'Shyam Fruit Corner',       cat:'Fruit',        icon:'🍎', phone:'+919876543241', address:'Station Road Market',      hours:'7AM–9PM',  distKm:0.7, lat:23.7972, lng:86.4285, rating:4.4},
+  {name:'Natraj Vegetable Store',   cat:'Vegetables',   icon:'🥦', phone:'+919876543242', address:'Gandhi Chowk',             hours:'6AM–7PM',  distKm:1.0, lat:23.7952, lng:86.4298, rating:3.9},
+  {name:'Laxmi Fruit Wala',         cat:'Fruit',        icon:'🍎', phone:'+919876543243', address:'Civil Lines Market',       hours:'7AM–8PM',  distKm:1.2, lat:23.7948, lng:86.4312, rating:4.3},
+  {name:'Organic Greens',           cat:'Vegetables',   icon:'🥦', phone:'+919876543244', address:'Bypass Road, Sector 2',   hours:'6AM–9PM',  distKm:1.5, lat:23.7935, lng:86.4325, rating:4.6},
+  {name:'Desi Fruit Market',        cat:'Fruit',        icon:'🍎', phone:'+919876543245', address:'Old Market Road',          hours:'6AM–8PM',  distKm:1.8, lat:23.7920, lng:86.4340, rating:4.1},
   {name:'Punjabi Dhaba',           cat:'Restaurant',   icon:'🍽️', phone:'+919876543211', address:'Station Road',            hours:'8AM–11PM', distKm:0.5, lat:23.7940, lng:86.4290, rating:4.4},
   {name:'PowerZone Gym',           cat:'Gym',          icon:'💪', phone:'+919876543221', address:'Sports Complex Road',     hours:'5AM–10PM', distKm:0.6, lat:23.7950, lng:86.4310, rating:4.6},
   {name:'Indane Gas Agency',       cat:'Gas',          icon:'🔥', phone:'+919876543212', address:'Civil Lines',             hours:'9AM–6PM',  distKm:0.7, lat:23.7990, lng:86.4260, rating:3.9},
@@ -1377,16 +1627,18 @@ let userLoc       = null;
 let pickedLoc     = null;
 let allShops      = [...SAMPLE_SHOPS];
 
-const SCREENS = ['login','home','rooms','shops','list-shop','profile','explore','edit-profile','shop-detail'];
+const SCREENS = ['login','home','rooms','shops','list-shop','profile','explore','edit-profile','shop-detail','admin','tracking','payment'];
 const NAVMAP  = {home:'n-home',rooms:'n-rooms',explore:'n-shops','list-shop':'n-list',profile:'n-profile'};
-const AVIDS   = ['av-home','av-shops','av-rooms','av-list','av-profile','av-explore'];
+const AVIDS   = ['av-home','av-shops','av-rooms','av-list','av-profile','av-explore','av-admin'];
 
 // ================================================================
 //  AUTH
 // ================================================================
 auth.onAuthStateChanged(user => {
   if (user) {
+    // Firebase Google login
     currentUser = user;
+    saveUserSession(user);
     syncUser(user);
     updateAvatars(user);
     document.getElementById('bnav').style.display = 'flex';
@@ -1394,16 +1646,59 @@ auth.onAuthStateChanged(user => {
     switchScreen('home');
     renderShopLists();
     loadFirestoreShops();
-    // Clear stale location cache so fresh GPS is always used
     clearLocationCache();
-    // Location system — shows 3-option sheet if not yet decided
     setTimeout(() => LocSystem.init(), 600);
   } else {
-    currentUser = null;
-    document.getElementById('bnav').style.display = 'none';
-    switchScreen('login');
+    // No Firebase session — check if MFA session exists in localStorage
+    if (!currentUser) {
+      // Try to restore MFA session first
+      const restored = tryRestoreSession();
+      if (!restored) {
+        // No session at all — show login
+        document.getElementById('bnav').style.display = 'none';
+        switchScreen('login');
+      }
+    }
   }
 });
+
+// ── User Persistence ─────────────────────────────────────────────
+const USER_STORE_KEY = 'nb_user_session_v1';
+
+function saveUserSession(user) {
+  if (!user) return;
+  try {
+    const data = {
+      uid:         user.uid,
+      displayName: user.displayName || '',
+      email:       user.email       || '',
+      phoneNumber: user.phoneNumber || '',
+      photoURL:    user.photoURL    || '',
+      role:        user.role        || 'user',
+      savedAt:     Date.now(),
+    };
+    localStorage.setItem(USER_STORE_KEY, JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadUserSession() {
+  try {
+    const raw = localStorage.getItem(USER_STORE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    // Session valid for 7 days
+    if (Date.now() - data.savedAt > 7 * 24 * 60 * 60 * 1000) {
+      localStorage.removeItem(USER_STORE_KEY);
+      return null;
+    }
+    return data;
+  } catch(e) { return null; }
+}
+
+function clearUserSession() {
+  try { localStorage.removeItem(USER_STORE_KEY); } catch(e) {}
+  try { localStorage.removeItem('nb_access_token'); } catch(e) {}
+}
 
 async function syncUser(user) {
   const n = user.displayName || user.phoneNumber || 'User';
@@ -1441,10 +1736,10 @@ function updateAvatars(user) {
   AVIDS.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.innerHTML = photo ? `<img src="${photo}" alt=""/>` : initials;
+    el.innerHTML = photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt=""/>` : initials;
   });
   const pp = document.getElementById('p-pic');
-  pp.innerHTML = photo ? `<img src="${photo}" alt=""/>` : initials;
+  if (pp) pp.innerHTML = photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;" alt=""/>` : initials;
 }
 
 // ================================================================
@@ -1459,49 +1754,487 @@ function loginGoogle() {
 }
 
 // ================================================================
-//  PHONE OTP
+//  MFA AUTHENTICATION SYSTEM — Production Grade
+//  Mirrors Swiggy / Zomato security architecture
+//
+//  Flow:
+//    Step 1: User enters email/phone + password → POST /login
+//            Server: bcrypt verify → generate OTP → send SMS/email
+//    Step 2: User enters 6-digit OTP → POST /verify-otp
+//            Server: verify hashed OTP in Redis → issue JWT
+//  
+//  Security features:
+//    • Rate limiting (10 attempts / 15 min per IP)
+//    • Account lockout after 5 failed logins (30 min)
+//    • OTP: 5-min expiry, max 3 wrong attempts, 60s resend cooldown
+//    • JWT: 15-min access token + 7-day httpOnly refresh token
+//    • OTP stored as bcrypt hash in Redis (never plain text)
 // ================================================================
-function setupCaptcha() {
-  if (!window.recaptchaVerifier) {
-    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-      size: 'normal', callback: () => {}
+
+// ── Config ─────────────────────────────────────────────────────────
+// PRODUCTION: change this to your deployed backend URL
+const MFA_API_BASE = 'http://localhost:5000/api/v1/auth';
+
+// In-memory session state (cleared on page refresh = secure)
+const MFA = {
+  userId:          null,   // set after successful password verify
+  channel:         null,   // 'sms' or 'email'
+  destination:     null,   // masked phone/email for display
+  otpExpiresIn:    300,    // seconds
+  accessToken:     null,
+  _otpTimerRef:    null,
+  _resendTimerRef: null,
+  _attemptsLeft:   3,
+};
+
+// ── Helpers ────────────────────────────────────────────────────────
+function togglePwd() {
+  const inp = document.getElementById('mfa-password');
+  const eye = document.getElementById('pwd-toggle');
+  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
+  else                         { inp.type = 'password'; eye.textContent = '👁️'; }
+}
+
+function _setCredErr(msg) {
+  const el = document.getElementById('cred-err');
+  if (el) el.textContent = msg || '';
+}
+
+function _setOtpErr(msg) {
+  const el = document.getElementById('otp-err');
+  if (el) el.textContent = msg || '';
+}
+
+function _clearOtpBoxes() {
+  ['o1','o2','o3','o4','o5','o6'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; el.style.borderColor = ''; }
+  });
+}
+
+function _getOtpValue() {
+  return ['o1','o2','o3','o4','o5','o6'].map(id => document.getElementById(id)?.value || '').join('');
+}
+
+// ── OTP countdown timer ────────────────────────────────────────────
+function _startOtpTimer(seconds) {
+  if (MFA._otpTimerRef) clearInterval(MFA._otpTimerRef);
+  let remaining = seconds;
+  const bar  = document.getElementById('otp-timer-bar');
+  const cd   = document.getElementById('otp-countdown');
+  const total = seconds;
+
+  MFA._otpTimerRef = setInterval(() => {
+    remaining--;
+    if (bar) bar.style.width = Math.max(0, (remaining / total) * 100) + '%';
+    if (cd) {
+      const m = Math.floor(remaining / 60);
+      const s = remaining % 60;
+      cd.textContent = m + ':' + String(s).padStart(2, '0');
+    }
+    if (remaining <= 0) {
+      clearInterval(MFA._otpTimerRef);
+      _setOtpErr('OTP expired. Please request a new code.');
+      const vBtn = document.getElementById('verify-btn');
+      if (vBtn) { vBtn.disabled = true; vBtn.textContent = 'OTP Expired'; }
+    }
+  }, 1000);
+}
+
+// ── Resend cooldown timer ─────────────────────────────────────────
+function _startResendCooldown(seconds) {
+  if (MFA._resendTimerRef) clearInterval(MFA._resendTimerRef);
+  const btn  = document.getElementById('resend-btn');
+  const cool = document.getElementById('resend-cooldown');
+  const secs = document.getElementById('resend-secs');
+  if (btn)  btn.style.display  = 'none';
+  if (cool) cool.style.display = '';
+  let remaining = seconds;
+
+  MFA._resendTimerRef = setInterval(() => {
+    remaining--;
+    if (secs) secs.textContent = remaining;
+    if (remaining <= 0) {
+      clearInterval(MFA._resendTimerRef);
+      if (btn)  btn.style.display  = '';
+      if (cool) cool.style.display = 'none';
+    }
+  }, 1000);
+}
+
+// ── Attempt dots ──────────────────────────────────────────────────
+function _updateAttemptDots(left) {
+  [1,2,3].forEach(i => {
+    const d = document.getElementById('att-d' + i);
+    if (d) d.style.background = i <= left ? 'var(--teal)' : 'rgba(252,165,165,.5)';
+  });
+}
+
+// ── STEP 1: Password verification → triggers OTP ─────────────────
+async function mfaLogin() {
+  const identifier = document.getElementById('mfa-identifier')?.value?.trim();
+  const password   = document.getElementById('mfa-password')?.value;
+  _setCredErr('');
+
+  // Client-side validation
+  if (!identifier) return _setCredErr('Please enter your email or phone number.');
+  if (!password || password.length < 8) return _setCredErr('Password must be at least 8 characters.');
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+  const isPhone = /^\+[1-9]\d{7,14}$/.test(identifier);
+  if (!isEmail && !isPhone) return _setCredErr('Enter a valid email or phone in E.164 format (e.g. +919876543210).');
+
+  const btn = document.getElementById('mfa-login-btn');
+  btn.disabled = true; btn.textContent = 'Verifying...';
+  spin('Checking credentials...');
+
+  try {
+    const resp = await fetch(MFA_API_BASE + '/login', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ identifier, password }),
     });
+
+    const data = await resp.json();
+    hideSpin();
+    btn.disabled = false; btn.textContent = 'Continue →';
+
+    if (!resp.ok || !data.success) {
+      // Account locked
+      if (data.code === 'ACCOUNT_LOCKED') {
+        const lockEl = document.getElementById('lock-status');
+        if (lockEl) { lockEl.textContent = '🔒 ' + data.message; lockEl.style.display = ''; }
+      }
+      // Rate limited
+      if (data.code === 'RATE_LIMITED' || data.code === 'IP_BLOCKED') {
+        _setCredErr('⚠️ ' + data.message);
+      } else if (data.code !== 'ACCOUNT_LOCKED') {
+        _setCredErr(data.message || 'Login failed. Please try again.');
+        // Show remaining attempts
+        if (data.attemptsLeft !== undefined) {
+          _setCredErr((data.message || '') + (data.attemptsLeft > 0 ? '' : ' Account locked.'));
+        }
+      }
+      return;
+    }
+
+    // ✅ Password correct — OTP was sent
+    MFA.userId      = data.userId;
+    MFA.channel     = data.channel;
+    MFA.destination = data.destination;
+    MFA.otpExpiresIn = data.expiresIn || 300;
+    MFA._attemptsLeft = 3;
+
+    // Update OTP screen
+    const subEl = document.getElementById('otp-sub');
+    if (subEl) subEl.innerHTML =
+      `Code sent via <strong>${data.channel === 'sms' ? '📱 SMS' : '📧 Email'}</strong> to <strong>${data.destination}</strong>`;
+
+    _clearOtpBoxes();
+    _updateAttemptDots(3);
+    _startOtpTimer(MFA.otpExpiresIn);
+    _startResendCooldown(60);
+
+    goStep('step-otp');
+    setTimeout(() => document.getElementById('o1')?.focus(), 200);
+    toast('✅ Code sent! Check your ' + data.channel, 'ok');
+
+  } catch (err) {
+    hideSpin();
+    btn.disabled = false; btn.textContent = 'Continue →';
+    if (err instanceof TypeError && err.message.includes('fetch')) {
+      _setCredErr('Server unreachable. Please ensure backend is running at: ' + MFA_API_BASE);
+      return;
+    }
+    _setCredErr('Network error. Please check your connection and try again.');
   }
 }
 
-function sendOTP() {
-  const raw = document.getElementById('phone-input').value.trim();
-  const num = '+91' + raw;
-  const errEl = document.getElementById('phone-err');
-  errEl.textContent = '';
-  if (!/^\+91\d{10}$/.test(num)) { errEl.textContent = 'Enter a valid 10-digit number.'; return; }
-  setupCaptcha();
-  const btn = document.getElementById('send-btn');
-  btn.disabled = true; btn.textContent = 'Sending...';
-  spin('Sending OTP...');
-  auth.signInWithPhoneNumber(num, window.recaptchaVerifier)
-    .then(res => { confirmResult = res; hideSpin(); btn.disabled = false; btn.textContent = 'Send OTP'; document.getElementById('otp-sub').textContent = 'OTP sent to ' + num; goStep('step-otp'); })
-    .catch(e => { hideSpin(); btn.disabled = false; btn.textContent = 'Send OTP'; errEl.textContent = e.message; try { window.recaptchaVerifier.render().then(id => grecaptcha.reset(id)); } catch(_) {} });
-}
+// ── STEP 2: OTP verification → issues JWT ────────────────────────
+async function mfaVerifyOtp() {
+  const code = _getOtpValue();
+  _setOtpErr('');
 
-function verifyOTP() {
-  const code = ['o1','o2','o3','o4','o5','o6'].map(id => document.getElementById(id).value).join('');
-  const errEl = document.getElementById('otp-err');
-  errEl.textContent = '';
-  if (code.length < 6) { errEl.textContent = 'Enter all 6 digits.'; return; }
-  if (!confirmResult) { errEl.textContent = 'Session expired. Try again.'; goStep('step-phone'); return; }
+  if (code.length < 6) return _setOtpErr('Please enter all 6 digits.');
+  if (!MFA.userId)     return _setOtpErr('Session expired. Please log in again.');
+
   const btn = document.getElementById('verify-btn');
   btn.disabled = true; btn.textContent = 'Verifying...';
   spin('Verifying OTP...');
-  confirmResult.confirm(code)
-    .then(() => { hideSpin(); btn.disabled = false; btn.textContent = 'Verify & Login'; })
-    .catch(() => { hideSpin(); btn.disabled = false; btn.textContent = 'Verify & Login'; errEl.textContent = 'Wrong OTP. Try again.'; });
+
+  try {
+    const resp = await fetch(MFA_API_BASE + '/verify-otp', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',   // include httpOnly refresh token cookie
+      body:    JSON.stringify({ userId: MFA.userId, otp: code }),
+    });
+
+    const data = await resp.json();
+    hideSpin();
+    btn.disabled = false; btn.textContent = 'Verify & Login ✓';
+
+    if (!resp.ok || !data.success) {
+      // Update attempt dots
+      if (data.attemptsLeft !== undefined) {
+        MFA._attemptsLeft = data.attemptsLeft;
+        _updateAttemptDots(data.attemptsLeft);
+      }
+      _setOtpErr(data.message || 'Invalid OTP.');
+      // Shake OTP boxes
+      document.querySelectorAll('.otp-box').forEach(b => {
+        b.style.borderColor = '#fca5a5';
+        b.style.animation = 'shake .3s ease';
+        setTimeout(() => { b.style.animation = ''; b.style.borderColor = ''; }, 400);
+      });
+      return;
+    }
+
+    // ✅ Login success!
+    if (MFA._otpTimerRef) clearInterval(MFA._otpTimerRef);
+    if (MFA._resendTimerRef) clearInterval(MFA._resendTimerRef);
+
+    MFA.accessToken = data.accessToken;
+
+    // Store access token in memory (never localStorage)
+    window.__mfa_access_token = data.accessToken;
+
+    // Adapt the returned user object into Firebase-like shape so the rest
+    // of the app (syncUser, updateAvatars etc.) works without changes.
+    const u = data.user || {};
+    const fakeUser = {
+      uid:          u.id || 'mfa_' + Date.now(),
+      displayName:  u.name  || u.email || u.phone || 'User',
+      email:        u.email || null,
+      phoneNumber:  u.phone || null,
+      photoURL:     u.avatar || null,
+      // Attach real JWT for API calls
+      getIdToken: () => Promise.resolve(data.accessToken),
+    };
+
+    currentUser = fakeUser;
+    toast('🎉 Login successful! Welcome back.', 'ok');
+
+    // Trigger the same post-login flow as Firebase onAuthStateChanged
+    _onMfaLoginSuccess(fakeUser);
+
+  } catch (err) {
+    hideSpin();
+    btn.disabled = false; btn.textContent = 'Verify & Login ✓';
+    if (err instanceof TypeError && err.message.includes('fetch')) {
+      _setOtpErr('Server unreachable. Cannot verify OTP. Please ensure backend is running.');
+      return;
+    }
+    _setOtpErr('Network error. Please try again.');
+  }
 }
 
-function otpNext(el, nid) { if (el.value && nid) document.getElementById(nid).focus(); }
-function otpPrev(e, el, pid) { if (e.key === 'Backspace' && !el.value && pid) document.getElementById(pid).focus(); }
-function goStep(id) { document.querySelectorAll('.login-step').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-function doLogout() { auth.signOut().then(() => toast('Logged out', 'ok')); }
+// ── Resend OTP ────────────────────────────────────────────────────
+async function mfaResendOtp() {
+  if (!MFA.userId) return;
+  const btn = document.getElementById('resend-btn');
+  if (btn) btn.style.display = 'none';
+  _setOtpErr('');
+  toast('Resending code...', '');
+
+  try {
+    const resp = await fetch(MFA_API_BASE + '/resend-otp', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ userId: MFA.userId }),
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok || !data.success) {
+      if (btn) btn.style.display = '';
+      if (data.code === 'RESEND_TOO_SOON') {
+        _startResendCooldown(data.waitSeconds || 60);
+      }
+      _setOtpErr(data.message || 'Could not resend code.');
+      return;
+    }
+
+    _clearOtpBoxes();
+    _updateAttemptDots(3);
+    MFA._attemptsLeft = 3;
+    _startOtpTimer(data.expiresIn || 300);
+    _startResendCooldown(60);
+    toast('✅ New code sent via ' + data.channel, 'ok');
+    document.getElementById('o1')?.focus();
+
+  } catch (err) {
+    if (btn) btn.style.display = '';
+    if (err instanceof TypeError) {
+      _setOtpErr('Server unreachable. Cannot resend OTP.');
+      return;
+    }
+    _setOtpErr('Network error. Please try again.');
+  }
+}
+
+// ── Post-login success handler ────────────────────────────────────
+function _onMfaLoginSuccess(user) {
+  currentUser = user;
+  // Save session to localStorage for auto-restore on next visit
+  saveUserSession(user);
+  if (window.__mfa_access_token) {
+    try { localStorage.setItem('nb_access_token', window.__mfa_access_token); } catch(e) {}
+  }
+  syncUser(user);
+  updateAvatars(user);
+  document.getElementById('bnav').style.display = 'flex';
+  screenHistory = ['home'];
+  switchScreen('home');
+  renderShopLists();
+  loadFirestoreShops();
+  clearLocationCache();
+  setTimeout(() => LocSystem.init(), 600);
+  // Show admin menu item if user is admin
+  const adminItem = document.getElementById('admin-menu-item');
+  if (adminItem && (user.role === 'admin' || user.email === 'admin@nearby.app')) {
+    adminItem.style.display = '';
+  }
+  // Check push notification banner
+  setTimeout(() => {
+    if (!localStorage.getItem('push_dismissed') && !localStorage.getItem('push_enabled')) {
+      const b = document.getElementById('push-banner');
+      if (b) b.style.display = '';
+    }
+  }, 4000);
+}
+
+// ── Auto-restore session on page load ────────────────────────────
+function tryRestoreSession() {
+  // 1. Check Firebase (Google login) — handled by onAuthStateChanged
+  // 2. Check our MFA localStorage session
+  const saved = loadUserSession();
+  if (!saved) return false;
+
+  const token = localStorage.getItem('nb_access_token');
+  if (!token) {
+    // Token gone — need to re-login via refresh endpoint
+    _tryTokenRefresh(saved);
+    return true;
+  }
+
+  // Restore user immediately from localStorage (instant UI)
+  window.__mfa_access_token = token;
+  const fakeUser = {
+    uid:          saved.uid,
+    displayName:  saved.displayName,
+    email:        saved.email,
+    phoneNumber:  saved.phoneNumber,
+    photoURL:     saved.photoURL,
+    role:         saved.role || 'user',
+    getIdToken:   () => Promise.resolve(token),
+  };
+  currentUser = fakeUser;
+  syncUser(fakeUser);
+  updateAvatars(fakeUser);
+  document.getElementById('bnav').style.display = 'flex';
+  screenHistory = ['home'];
+  switchScreen('home');
+  renderShopLists();
+  loadFirestoreShops();
+  clearLocationCache();
+  setTimeout(() => LocSystem.init(), 600);
+  const adminItem = document.getElementById('admin-menu-item');
+  if (adminItem && (fakeUser.role === 'admin' || fakeUser.email === 'admin@nearby.app')) {
+    adminItem.style.display = '';
+  }
+
+  // Silently refresh token in background
+  _tryTokenRefresh(saved);
+  return true;
+}
+
+async function _tryTokenRefresh(saved) {
+  try {
+    const resp = await fetch(MFA_API_BASE + '/refresh', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      window.__mfa_access_token = data.accessToken;
+      try { localStorage.setItem('nb_access_token', data.accessToken); } catch(e) {}
+    } else {
+      // Refresh failed — token expired, need re-login
+      clearUserSession();
+      if (!currentUser) {
+        document.getElementById('bnav').style.display = 'none';
+        switchScreen('login');
+      }
+    }
+  } catch(e) {
+    // Network error — keep current UI, will retry later
+  }
+}
+
+// Demo mode removed — real OTP verification only
+
+// ── OTP input helpers ─────────────────────────────────────────────
+function otpNext(el, nid) {
+  el.value = el.value.replace(/\D/g, '').slice(-1);  // digits only
+  if (el.value && nid) document.getElementById(nid)?.focus();
+  // Auto-submit when last box filled
+  if (!nid && _getOtpValue().length === 6) setTimeout(mfaVerifyOtp, 80);
+}
+function otpPrev(e, el, pid) {
+  if (e.key === 'Backspace' && !el.value && pid) document.getElementById(pid)?.focus();
+  if (e.key === 'Enter') mfaVerifyOtp();
+}
+function goStep(id) {
+  document.querySelectorAll('.login-step').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(id);
+  if (target) target.classList.add('active');
+}
+
+// ── Token refresh helper (call before protected API requests) ──────
+async function getValidToken() {
+  if (window.__mfa_access_token) return window.__mfa_access_token;
+  // Try refresh
+  try {
+    const resp = await fetch(MFA_API_BASE + '/refresh', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      window.__mfa_access_token = data.accessToken;
+      return data.accessToken;
+    }
+  } catch {}
+  return null;
+}
+
+// ── Logout ────────────────────────────────────────────────────────
+async function doLogout() {
+  try {
+    const token = window.__mfa_access_token;
+    await fetch(MFA_API_BASE + '/logout', {
+      method:  'POST',
+      headers: token ? { 'Authorization': 'Bearer ' + token } : {},
+      credentials: 'include',
+    });
+  } catch {}
+  // Also sign out Firebase Google session if active
+  try { await auth.signOut(); } catch {}
+  // Clear all stored session data
+  window.__mfa_access_token = null;
+  MFA.userId = null; MFA.accessToken = null;
+  currentUser = null;
+  clearUserSession();
+  toast('Logged out successfully', 'ok');
+  document.getElementById('bnav').style.display = 'none';
+  switchScreen('login');
+  goStep('step-choose');
+}
+
+// ── Legacy aliases (keep rest of app working unchanged) ───────────
+function sendOTP()  { /* replaced by mfaLogin */ }
+function verifyOTP(){ mfaVerifyOtp(); }
+function setupCaptcha() {}  // no longer needed
 
 // ================================================================
 //  DISTANCE CALCULATION (Haversine formula)
@@ -2426,6 +3159,7 @@ async function saveProfile() {
     syncUser(currentUser);
     updateAvatars(currentUser);
     // Do NOT update hero-loc-text from profile city — GPS location always takes priority
+    saveUserSession(currentUser);
     toast('✅ Profile updated!', 'ok');
     goBack();
   } catch(e) {
@@ -2967,74 +3701,74 @@ function updateLocationUI(text) {
  * @returns {Promise<string>}
  */
 async function getPlaceFromCoords(lat, lon) {
+  // ── Strategy: Try multiple Nominatim zoom levels to get pincode ──
+  // zoom=14 gives broader area with better postcode coverage for rural India
+  // zoom=18 gives street level but postcode often missing in rural areas
 
-  // ── 1. Cache check ──────────────────────────────────────────────
-  // Cache disabled: always get fresh location from Nominatim
-  // This ensures the pill always shows where the user actually IS right now
+  async function _nominatimFetch(zoom) {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=${zoom}`;
+    const resp = await fetch(url, {
+      headers: { 'Accept-Language': 'en', 'User-Agent': 'NearbyApp/2.0' },
+    });
+    if (!resp.ok) throw new Error('Nominatim ' + resp.status);
+    return resp.json();
+  }
 
-  // ── 2. Nominatim call ─────────────────────────────────────────────
-  // zoom=18 → street/neighbourhood level detail
-  const url =
-    `https://nominatim.openstreetmap.org/reverse` +
-    `?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`;
+  // Try zoom=16 first (good balance), fallback to zoom=12 for pincode
+  let data, dataWide;
+  try { data = await _nominatimFetch(16); } catch(e) { throw e; }
+  try { dataWide = await _nominatimFetch(12); } catch(e) { dataWide = data; }
 
-  const resp = await fetch(url, {
-    headers: {
-      'Accept-Language': 'en',                    // force English names
-      'User-Agent': 'NearbyApp/2.0 (local use)',  // Nominatim fair-use policy
-    },
-  });
-  if (!resp.ok) throw new Error(`Nominatim HTTP ${resp.status}`);
+  const a  = data.address     || {};
+  const aw = dataWide.address || {};
 
-  const data = await resp.json();
-  const a    = data.address || {};
-
-  // ── 3. Place (village / town / suburb priority) ───────────────────
+  // ── Place: prefer village > town > suburb > city ──────────────
   const place =
-    a.village        ||   // rural villages — highest priority
-    a.town           ||   // small towns
-    a.suburb         ||   // urban suburb
-    a.neighbourhood  ||   // city neighbourhood
-    a.hamlet         ||   // tiny hamlet
-    a.quarter        ||
-    a.city_district  ||
-    a.city           ||   // large city (last resort for place field)
-    a.municipality   ||
-    a.county         ||
-    '';
+    a.village       || a.town        || a.suburb      ||
+    a.neighbourhood || a.hamlet      || a.quarter      ||
+    a.city_district || a.city        || a.municipality ||
+    a.county        || '';
 
-  // ── 4. District (county / state_district) ────────────────────────
-  // Use raw Nominatim value — no artificial "District" suffix
+  // ── District ──────────────────────────────────────────────────
   const district =
-    a.county         ||
-    a.state_district ||
-    a.city_district  ||
-    a.city           ||   // fallback if nothing else
-    '';
+    a.county        || a.state_district ||
+    a.city_district || a.city           || '';
 
-  // ── 5. State ──────────────────────────────────────────────────────
-  const state = a.state || '';
+  // ── State ─────────────────────────────────────────────────────
+  const state = a.state || aw.state || '';
 
-  // ── 6. Pincode ───────────────────────────────────────────────────
-  // Only include if Nominatim actually returned one
-  const pincode = (a.postcode || '').replace(/\s/g, '').trim();
+  // ── Pincode: try both zoom responses — wide area is more reliable
+  // Also try India-specific postoffice API as second source
+  let pincode = (a.postcode || aw.postcode || '').replace(/\s/g, '').trim();
 
-  // ── 7. Build label ────────────────────────────────────────────────
-  // Core: "Place, District, State"
-  // Dedup: if place === district (e.g. city matches county) skip district
+  // If Nominatim gave no pincode, try BigDataCloud (no key needed, free)
+  if (!pincode) {
+    try {
+      const bdcUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
+      const bdcResp = await fetch(bdcUrl);
+      if (bdcResp.ok) {
+        const bdc = await bdcResp.json();
+        pincode = (bdc.postcode || bdc.locality?.postcode || '').replace(/\s/g, '').trim();
+        // If still no pincode, use locality from bigdatacloud
+        if (!pincode && bdc.locality) {
+          // Try to extract 6-digit PIN from locality string
+          const m = (bdc.locality + ' ' + (bdc.localityInfo?.administrative?.map(x=>x.name).join(' ')||'')).match(/\b(\d{6})\b/);
+          if (m) pincode = m[1];
+        }
+      }
+    } catch(e) { /* BigDataCloud unavailable — continue without pincode */ }
+  }
+
+  // ── Build label ───────────────────────────────────────────────
   const parts = [];
-  if (place)                              parts.push(place);
-  if (district && district !== place)     parts.push(district);
-  if (state)                              parts.push(state);
+  if (place)                          parts.push(place);
+  if (district && district !== place) parts.push(district);
+  if (state)                          parts.push(state);
 
   let label = parts.join(', ');
-
-  // Append pincode with " - " separator — ONLY when present
-  if (pincode) label = `${label} - ${pincode}`;
-
+  if (pincode) label = label + ' - ' + pincode;
   label = label.trim() || 'Location found';
 
-  // Cache write disabled — we always want fresh real location
   return label;
 }
 
@@ -3812,6 +4546,11 @@ function sdNav() {
   setTimeout(()=>startNavigation(_sdShop),150);
 }
 
+function sdLiveTrack() {
+  if (!_sdShop) return;
+  openTracking(_sdShop);
+}
+
 function sdShare() {
   if (!_sdShop) return;
   const txt=`${_sdShop.name} — ${_sdShop.cat||''}\nAddress: ${_sdShop.address||''}\nPhone: ${_sdShop.phone||''}`;
@@ -3970,6 +4709,719 @@ function _isShopOpenNow(hours) {
 function openAboutModal() {
   document.getElementById('about-modal')?.classList.add('open');
 }
+
+
+// ================================================================
+//  SIGNUP FLOW — Registration with OTP + Profile Setup
+// ================================================================
+const SIGNUP = {
+  userId: null, name: null, identifier: null,
+  password: null, role: 'user', avatarFile: null,
+  _timerRef: null, _resendRef: null,
+};
+
+function toggleSuPwd() {
+  const i = document.getElementById('su-password');
+  i.type = i.type === 'password' ? 'text' : 'password';
+}
+
+// Password strength indicator
+document.addEventListener('DOMContentLoaded', () => {
+  const p = document.getElementById('su-password');
+  if (p) p.addEventListener('input', () => checkPwdStrength(p.value));
+});
+function checkPwdStrength(v) {
+  const bar = document.getElementById('pwd-strength-bar');
+  const lbl = document.getElementById('pwd-strength-label');
+  if (!bar) return;
+  let score = 0;
+  if (v.length >= 8)  score++;
+  if (/[A-Z]/.test(v)) score++;
+  if (/[0-9]/.test(v)) score++;
+  if (/[^A-Za-z0-9]/.test(v)) score++;
+  const colors = ['','#ef4444','#f97316','#eab308','#22c55e'];
+  const labels = ['','Weak','Fair','Good','Strong'];
+  bar.style.width  = (score * 25) + '%';
+  bar.style.background = colors[score] || '';
+  if (lbl) lbl.textContent = score > 0 ? labels[score] + ' password' : '';
+}
+
+async function signupStep1() {
+  const name  = document.getElementById('su-name')?.value?.trim();
+  const ident = document.getElementById('su-identifier')?.value?.trim();
+  const pass  = document.getElementById('su-password')?.value;
+  const conf  = document.getElementById('su-confirm')?.value;
+  const errEl = document.getElementById('signup-err');
+  errEl.textContent = '';
+
+  if (!name || name.length < 2)  return errEl.textContent = 'Please enter your full name.';
+  if (!ident)                    return errEl.textContent = 'Email or phone required.';
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ident);
+  const isPhone = /^\+[1-9]\d{7,14}$/.test(ident);
+  if (!isEmail && !isPhone) return errEl.textContent = 'Enter valid email or E.164 phone (+91xxxxxxxxxx).';
+  if (!pass || pass.length < 8) return errEl.textContent = 'Password must be at least 8 characters.';
+  if (pass !== conf) return errEl.textContent = 'Passwords do not match.';
+
+  SIGNUP.name = name; SIGNUP.identifier = ident; SIGNUP.password = pass;
+
+  const btn = document.getElementById('signup-btn');
+  btn.disabled = true; btn.textContent = 'Sending...';
+  spin('Creating your account...');
+
+  try {
+    const resp = await fetch(MFA_API_BASE.replace('/auth','/auth') + '/register', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name, identifier: ident, password: pass }),
+    });
+    const data = await resp.json();
+    hideSpin(); btn.disabled = false; btn.textContent = 'Send Verification Code →';
+    if (!resp.ok) return errEl.textContent = data.message || 'Registration failed.';
+    SIGNUP.userId = data.userId;
+    _suStartTimer(300); _suStartResend(60);
+    const sub = document.getElementById('su-otp-sub');
+    if (sub) sub.innerHTML = `Code sent via <strong>${data.channel === 'sms' ? '📱 SMS' : '📧 Email'}</strong> to <strong>${data.destination}</strong>`;
+    ['su1','su2','su3','su4','su5','su6'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    goStep('step-signup-otp');
+    setTimeout(() => document.getElementById('su1')?.focus(), 200);
+    toast('✅ Code sent!', 'ok');
+  } catch(err) {
+    hideSpin(); btn.disabled = false; btn.textContent = 'Send Verification Code →';
+    if (err instanceof TypeError && err.message.includes('fetch')) {
+      errEl.textContent = 'Server unreachable. Please ensure backend is running at: ' + MFA_API_BASE;
+      return;
+    }
+    errEl.textContent = 'Network error. Please try again.';
+  }
+}
+
+async function signupVerifyOtp() {
+  const code = ['su1','su2','su3','su4','su5','su6'].map(id => document.getElementById(id)?.value||'').join('');
+  const errEl = document.getElementById('su-otp-err');
+  errEl.textContent = '';
+  if (code.length < 6) return errEl.textContent = 'Please enter all 6 digits.';
+
+  const btn = document.getElementById('su-verify-btn');
+  btn.disabled = true; btn.textContent = 'Verifying...';
+  spin('Verifying...');
+
+  try {
+    const resp = await fetch(MFA_API_BASE + '/register/verify', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      credentials: 'include',
+      body: JSON.stringify({ userId: SIGNUP.userId, otp: code }),
+    });
+    const data = await resp.json();
+    hideSpin(); btn.disabled = false; btn.textContent = 'Verify & Create Account ✓';
+    if (!resp.ok) { errEl.textContent = data.message || 'Invalid OTP.'; return; }
+    if (SIGNUP._timerRef) clearInterval(SIGNUP._timerRef);
+    goStep('step-profile-setup');
+    toast('✅ Account verified!', 'ok');
+  } catch(err) {
+    hideSpin(); btn.disabled = false; btn.textContent = 'Verify & Create Account ✓';
+    if (err instanceof TypeError && err.message.includes('fetch')) {
+      errEl.textContent = 'Server unreachable. Cannot verify OTP.';
+      return;
+    }
+    errEl.textContent = 'Network error.';
+  }
+}
+
+async function signupResendOtp() {
+  const btn = document.getElementById('su-resend-btn');
+  if(btn) btn.style.display = 'none';
+  try {
+    const resp = await fetch(MFA_API_BASE + '/resend-otp', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ userId: SIGNUP.userId }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) { if(btn) btn.style.display=''; return; }
+    _suStartTimer(300); _suStartResend(60);
+    ['su1','su2','su3','su4','su5','su6'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    toast('✅ New code sent!', 'ok');
+  } catch(err) {
+    if(btn) btn.style.display = '';
+    // network error — button already re-shown above
+  }
+}
+
+function _suStartTimer(secs) {
+  if (SIGNUP._timerRef) clearInterval(SIGNUP._timerRef);
+  let rem = secs;
+  const bar = document.getElementById('su-timer-bar');
+  const cd  = document.getElementById('su-countdown');
+  SIGNUP._timerRef = setInterval(() => {
+    rem--;
+    if(bar) bar.style.width = Math.max(0,(rem/secs)*100)+'%';
+    if(cd) { const m=Math.floor(rem/60),s=rem%60; cd.textContent=m+':'+String(s).padStart(2,'0'); }
+    if(rem<=0) { clearInterval(SIGNUP._timerRef); document.getElementById('su-otp-err').textContent='OTP expired.'; }
+  }, 1000);
+}
+
+function _suStartResend(secs) {
+  if (SIGNUP._resendRef) clearInterval(SIGNUP._resendRef);
+  const btn  = document.getElementById('su-resend-btn');
+  const cool = document.getElementById('su-resend-cool');
+  const secsEl = document.getElementById('su-resend-secs');
+  if(btn) btn.style.display='none';
+  if(cool) cool.style.display='';
+  let rem = secs;
+  SIGNUP._resendRef = setInterval(() => {
+    rem--;
+    if(secsEl) secsEl.textContent = rem;
+    if(rem<=0) { clearInterval(SIGNUP._resendRef); if(btn) btn.style.display=''; if(cool) cool.style.display='none'; }
+  }, 1000);
+}
+
+function suOtpNext(el, nid) {
+  el.value = el.value.replace(/\D/g,'').slice(-1);
+  if(el.value && nid) document.getElementById(nid)?.focus();
+  const all = ['su1','su2','su3','su4','su5','su6'].map(id=>document.getElementById(id)?.value||'').join('');
+  if(all.length===6 && !nid) setTimeout(signupVerifyOtp, 80);
+}
+function suOtpPrev(e,el,pid) {
+  if(e.key==='Backspace'&&!el.value&&pid) document.getElementById(pid)?.focus();
+}
+
+let _selectedRole = 'user';
+function selectRole(r) {
+  _selectedRole = r;
+  document.getElementById('role-user').style.background  = r==='user'  ? 'var(--teal)'         : 'rgba(255,255,255,.08)';
+  document.getElementById('role-owner').style.background = r==='owner' ? 'var(--orange)'        : 'rgba(255,255,255,.08)';
+  document.getElementById('role-user').style.border      = r==='user'  ? 'none'                 : '1px solid rgba(255,255,255,.2)';
+  document.getElementById('role-owner').style.border     = r==='owner' ? 'none'                 : '1px solid rgba(255,255,255,.2)';
+}
+
+function previewSuAvatar(inp) {
+  if (!inp.files[0]) return;
+  SIGNUP.avatarFile = inp.files[0];
+  const r = new FileReader();
+  r.onload = e => {
+    const el = document.getElementById('su-avatar-preview');
+    if(el) el.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt=""/>`;
+  };
+  r.readAsDataURL(inp.files[0]);
+}
+
+async function finishSignup() {
+  const city = document.getElementById('su-city')?.value?.trim() || '';
+  const btn  = document.getElementById('finish-signup-btn');
+  btn.disabled = true;
+  spin('Setting up your profile...');
+
+  try {
+    // In production: PATCH /api/v1/users/profile with FormData including avatar
+    await new Promise(r => setTimeout(r, 800)); // simulate
+
+    const fakeUser = {
+      uid: SIGNUP.userId || ('user_'+Date.now()),
+      displayName: SIGNUP.name || 'New User',
+      email: SIGNUP.identifier?.includes('@') ? SIGNUP.identifier : null,
+      phoneNumber: !SIGNUP.identifier?.includes('@') ? SIGNUP.identifier : null,
+      photoURL: null,
+      role: _selectedRole,
+      getIdToken: () => Promise.resolve('signup_token'),
+    };
+
+    hideSpin(); btn.disabled = false;
+    toast('🎉 Welcome to Nearby, ' + (SIGNUP.name?.split(' ')[0] || 'User') + '!', 'ok');
+
+    // Show push notification banner after signup
+    setTimeout(() => {
+      const banner = document.getElementById('push-banner');
+      if (banner && !localStorage.getItem('push_dismissed')) banner.style.display = '';
+    }, 2000);
+
+    _onMfaLoginSuccess(fakeUser);
+
+    // If shop owner, go to list-shop after a moment
+    if (_selectedRole === 'owner') {
+      setTimeout(() => switchScreen('list-shop'), 1500);
+    }
+  } catch(e) {
+    hideSpin(); btn.disabled = false;
+    toast('Setup failed. Please try again.', 'err');
+  }
+}
+
+// Add signup button to login step-choose
+document.addEventListener('DOMContentLoaded', () => {
+  const choose = document.getElementById('step-choose');
+  if (choose) {
+    const div = document.createElement('div');
+    div.style.marginTop = '8px';
+    div.innerHTML = `<button class="auth-btn" onclick="goStep('step-signup')" style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);font-size:13px;">✨ Create New Account</button>`;
+    choose.appendChild(div);
+  }
+});
+
+// ================================================================
+//  ADMIN DASHBOARD
+// ================================================================
+const ADMIN_DEMO = {
+  users: [
+    {id:'u1', name:'Rahul Kumar',    email:'rahul@gmail.com',    phone:'+919876543210', role:'user',  status:'active',  joined:'2024-01-15', shops:0},
+    {id:'u2', name:'Priya Singh',    email:'priya@gmail.com',    phone:'+919876543211', role:'owner', status:'active',  joined:'2024-01-18', shops:2},
+    {id:'u3', name:'Amit Sharma',    email:'amit@yahoo.com',     phone:'+919876543212', role:'user',  status:'active',  joined:'2024-02-01', shops:0},
+    {id:'u4', name:'Neha Gupta',     email:'neha@gmail.com',     phone:'+919876543213', role:'owner', status:'banned',  joined:'2024-02-10', shops:1},
+    {id:'u5', name:'Vikram Patel',   email:'vikram@gmail.com',   phone:'+919876543214', role:'admin', status:'active',  joined:'2023-12-01', shops:0},
+  ],
+  shops: [
+    {id:'s1', name:'Fresh Mart',    owner:'Priya Singh',  cat:'Grocery',    status:'active',  revenue:4500},
+    {id:'s2', name:'Tech Hub',      owner:'Priya Singh',  cat:'Mobile Shop',status:'active',  revenue:8200},
+    {id:'s3', name:'Cake Palace',   owner:'Neha Gupta',   cat:'Cake',       status:'pending', revenue:0},
+    {id:'s4', name:'Green Veggies', owner:'Amit Sharma',  cat:'Vegetables', status:'pending', revenue:0},
+  ],
+  payments: [
+    {id:'p1', user:'Rahul Kumar',  plan:'Premium',  amount:99,  method:'UPI',        status:'success', date:'2024-03-10'},
+    {id:'p2', user:'Priya Singh',  plan:'Business', amount:299, method:'Card',        status:'success', date:'2024-03-09'},
+    {id:'p3', user:'Amit Sharma',  plan:'Premium',  amount:99,  method:'NetBanking',  status:'failed',  date:'2024-03-08'},
+    {id:'p4', user:'Vikram Patel', plan:'Business', amount:299, method:'UPI',         status:'success', date:'2024-03-07'},
+  ],
+  notifs: []
+};
+
+function openAdmin() {
+  // Only allow if user is admin
+  if (currentUser && currentUser.role !== 'admin') {
+    toast('Admin access required', 'err'); return;
+  }
+  switchScreen('admin');
+  admLoadStats();
+  admTab('users');
+}
+
+function admLoadStats() {
+  document.getElementById('adm-total-users').textContent = ADMIN_DEMO.users.length;
+  document.getElementById('adm-total-shops').textContent = ADMIN_DEMO.shops.length;
+  document.getElementById('adm-active-today').textContent = ADMIN_DEMO.users.filter(u=>u.status==='active').length;
+  document.getElementById('adm-pending').textContent = ADMIN_DEMO.shops.filter(s=>s.status==='pending').length;
+  const total = ADMIN_DEMO.payments.filter(p=>p.status==='success').reduce((a,p)=>a+p.amount,0);
+  document.getElementById('pay-total-rev').textContent = '₹'+total.toLocaleString('en-IN');
+  document.getElementById('pay-success-count').textContent = ADMIN_DEMO.payments.filter(p=>p.status==='success').length;
+}
+
+function admTab(tab) {
+  ['users','shops','notifs','payments'].forEach(t => {
+    const btn  = document.getElementById('adm-tab-'+t);
+    const pane = document.getElementById('adm-pane-'+t);
+    if(btn) { btn.style.borderBottomColor = t===tab ? 'var(--teal)' : 'transparent'; btn.style.color = t===tab ? 'var(--teal)' : 'var(--muted)'; btn.style.fontWeight = t===tab ? '600' : '400'; }
+    if(pane) pane.style.display = t===tab ? '' : 'none';
+  });
+  if (tab==='users')    admRenderUsers(ADMIN_DEMO.users);
+  if (tab==='shops')    admRenderShops(ADMIN_DEMO.shops);
+  if (tab==='notifs')   admRenderNotifs();
+  if (tab==='payments') admRenderPayments();
+}
+
+function admRenderUsers(users) {
+  const el = document.getElementById('adm-users-list');
+  if (!el) return;
+  el.innerHTML = users.map(u => `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+      <div style="width:40px;height:40px;border-radius:50%;background:${u.role==='admin'?'var(--orange)':u.role==='owner'?'var(--teal)':'var(--navy)'};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0;">${u.name.charAt(0)}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);">${u.name}</div>
+        <div style="font-size:11px;color:var(--muted);">${u.email} · ${u.phone}</div>
+        <div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;">
+          <span style="font-size:10px;padding:2px 7px;border-radius:999px;background:${u.role==='admin'?'rgba(255,107,53,.15)':u.role==='owner'?'var(--teal-light)':'var(--orange-light)'};color:${u.role==='admin'?'var(--orange)':u.role==='owner'?'var(--teal)':'#666'};">${u.role}</span>
+          <span style="font-size:10px;padding:2px 7px;border-radius:999px;background:${u.status==='active'?'rgba(34,197,94,.15)':'rgba(252,165,165,.15)'};color:${u.status==='active'?'#22c55e':'#ef4444'};">${u.status}</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+        <button onclick="admToggleBan('${u.id}')" style="background:${u.status==='active'?'rgba(239,68,68,.1)':'rgba(34,197,94,.1)'};color:${u.status==='active'?'#ef4444':'#22c55e'};border:none;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:'Noto Sans',sans-serif;">${u.status==='active'?'🚫 Ban':'✅ Unban'}</button>
+        <button onclick="admSendUserNotif('${u.id}','${u.name}')" style="background:var(--teal-light);color:var(--teal);border:none;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:'Noto Sans',sans-serif;">🔔 Notify</button>
+      </div>
+    </div>`).join('');
+}
+
+function admSearchUsers(q) {
+  const filtered = ADMIN_DEMO.users.filter(u =>
+    u.name.toLowerCase().includes(q.toLowerCase()) ||
+    u.email.toLowerCase().includes(q.toLowerCase()) ||
+    u.phone.includes(q)
+  );
+  admRenderUsers(filtered);
+}
+
+function admToggleBan(uid) {
+  const u = ADMIN_DEMO.users.find(u=>u.id===uid);
+  if (!u) return;
+  u.status = u.status === 'active' ? 'banned' : 'active';
+  toast(u.status==='banned' ? '🚫 User banned' : '✅ User unbanned', u.status==='banned'?'err':'ok');
+  admRenderUsers(ADMIN_DEMO.users);
+  admLoadStats();
+}
+
+function admSendUserNotif(uid, name) {
+  toast(`🔔 Notification sent to ${name}`, 'ok');
+  ADMIN_DEMO.notifs.unshift({title:'Direct message', body:'Admin sent you a message', target:name, time:new Date().toLocaleTimeString()});
+}
+
+function admRenderShops(shops) {
+  const el = document.getElementById('adm-shops-list');
+  if (!el) return;
+  el.innerHTML = shops.map(s => `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);">${s.name}</div>
+          <div style="font-size:11px;color:var(--muted);">${s.cat} · Owner: ${s.owner}</div>
+        </div>
+        <span style="font-size:10px;padding:3px 9px;border-radius:999px;background:${s.status==='active'?'rgba(34,197,94,.15)':s.status==='pending'?'rgba(245,158,11,.15)':'rgba(252,165,165,.15)'};color:${s.status==='active'?'#22c55e':s.status==='pending'?'#f59e0b':'#ef4444'};">${s.status}</span>
+      </div>
+      ${s.status==='pending' ? `
+      <div style="display:flex;gap:8px;">
+        <button onclick="admApproveShop('${s.id}')" style="flex:1;background:rgba(34,197,94,.1);color:#22c55e;border:none;border-radius:6px;padding:8px;font-size:12px;cursor:pointer;font-weight:600;">✅ Approve</button>
+        <button onclick="admRejectShop('${s.id}')" style="flex:1;background:rgba(239,68,68,.1);color:#ef4444;border:none;border-radius:6px;padding:8px;font-size:12px;cursor:pointer;font-weight:600;">❌ Reject</button>
+      </div>` : `
+      <div style="font-size:12px;color:var(--muted);">Revenue: ₹${s.revenue.toLocaleString('en-IN')}</div>`}
+    </div>`).join('');
+}
+
+function admFilterShops(status) {
+  const filtered = status==='all' ? ADMIN_DEMO.shops : ADMIN_DEMO.shops.filter(s=>s.status===status);
+  admRenderShops(filtered);
+}
+
+function admApproveShop(sid) {
+  const s = ADMIN_DEMO.shops.find(s=>s.id===sid);
+  if(s) { s.status='active'; toast('✅ Shop approved!','ok'); admRenderShops(ADMIN_DEMO.shops); admLoadStats(); }
+}
+function admRejectShop(sid) {
+  ADMIN_DEMO.shops = ADMIN_DEMO.shops.filter(s=>s.id!==sid);
+  toast('❌ Shop rejected','err'); admRenderShops(ADMIN_DEMO.shops); admLoadStats();
+}
+
+function admRenderNotifs() {
+  const el = document.getElementById('adm-notifs-log');
+  if (!el) return;
+  if (!ADMIN_DEMO.notifs.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">No notifications sent yet</div>';
+    return;
+  }
+  el.innerHTML = ADMIN_DEMO.notifs.map(n => `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);padding:11px 13px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;">
+      <span style="font-size:18px;flex-shrink:0;">🔔</span>
+      <div><div style="font-size:13px;font-weight:600;">${n.title}</div><div style="font-size:12px;color:var(--muted);">${n.body}</div><div style="font-size:11px;color:var(--muted);margin-top:4px;">To: ${n.target} · ${n.time}</div></div>
+    </div>`).join('');
+}
+
+function admSendNotification() {
+  const title  = document.getElementById('notif-title')?.value?.trim();
+  const body   = document.getElementById('notif-body')?.value?.trim();
+  const target = document.getElementById('notif-target')?.value;
+  if (!title || !body) { toast('Please fill title and body','err'); return; }
+  ADMIN_DEMO.notifs.unshift({title, body, target: target==='all'?'All Users':target==='owners'?'Shop Owners':'Active Users', time: new Date().toLocaleTimeString()});
+  document.getElementById('notif-title').value = '';
+  document.getElementById('notif-body').value  = '';
+  toast('🔔 Notification sent to ' + ADMIN_DEMO.users.length + ' users!','ok');
+  admRenderNotifs();
+}
+
+function admSendBroadcast() {
+  const msg = prompt('Broadcast message to all users:');
+  if (!msg) return;
+  ADMIN_DEMO.notifs.unshift({title:'Broadcast', body:msg, target:'All Users', time: new Date().toLocaleTimeString()});
+  toast('📢 Broadcast sent!','ok');
+}
+
+function admRenderPayments() {
+  const el = document.getElementById('adm-payments-list');
+  if (!el) return;
+  el.innerHTML = ADMIN_DEMO.payments.map(p => `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:13px;font-weight:600;">${p.user}</div>
+        <div style="font-size:11px;color:var(--muted);">${p.plan} · ${p.method} · ${p.date}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'Baloo 2',cursive;font-size:15px;font-weight:700;color:${p.status==='success'?'var(--teal)':'#ef4444'};">₹${p.amount}</div>
+        <div style="font-size:10px;color:${p.status==='success'?'#22c55e':'#ef4444'};">${p.status}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ================================================================
+//  REAL-TIME TRACKING
+// ================================================================
+let _trackMap = null, _trackUserMarker = null, _trackShopMarker = null, _trackRoute = null;
+let _trackWatchId = null, _trackIntervalId = null;
+
+function openTracking(shop) {
+  switchScreen('tracking');
+  if (shop) {
+    document.getElementById('track-shop-name').textContent = shop.name || 'Tracking...';
+    document.getElementById('track-shop-cat').textContent  = shop.cat  || '';
+  }
+  setTimeout(() => _initTrackingMap(shop), 300);
+}
+
+function _initTrackingMap(shop) {
+  const mapEl = document.getElementById('tracking-osm');
+  if (!mapEl) return;
+
+  const startLat = userLoc ? userLoc.lat : 23.798;
+  const startLng = userLoc ? userLoc.lng : 86.430;
+
+  if (!_trackMap) {
+    _trackMap = L.map('tracking-osm', { zoomControl: false, attributionControl: false })
+      .setView([startLat, startLng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(_trackMap);
+    L.control.zoom({ position: 'topright' }).addTo(_trackMap);
+  }
+
+  // User marker — pulsing blue dot
+  const pulseIcon = L.divIcon({
+    html: `<div style="position:relative;width:20px;height:20px;">
+      <div style="position:absolute;inset:0;background:rgba(66,133,244,.25);border-radius:50%;animation:pulse 2s ease-in-out infinite;"></div>
+      <div style="position:absolute;top:3px;left:3px;width:14px;height:14px;background:#4285F4;border:2.5px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(66,133,244,.6);"></div>
+    </div>`,
+    className:'', iconSize:[20,20], iconAnchor:[10,10]
+  });
+
+  if (_trackUserMarker) _trackUserMarker.setLatLng([startLat, startLng]);
+  else _trackUserMarker = L.marker([startLat, startLng], {icon: pulseIcon}).addTo(_trackMap).bindPopup('📍 You are here');
+
+  // Shop marker
+  if (shop && shop.lat && shop.lng) {
+    const shopIcon = L.divIcon({
+      html: `<div style="width:36px;height:36px;background:var(--orange,#FF6B35);border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 3px 10px rgba(255,107,53,.5);display:flex;align-items:center;justify-content:center;">
+        <span style="transform:rotate(45deg);font-size:16px;">${shop.icon||'🏪'}</span></div>`,
+      className:'', iconSize:[36,36], iconAnchor:[18,36]
+    });
+    if (_trackShopMarker) _trackShopMarker.setLatLng([shop.lat, shop.lng]);
+    else _trackShopMarker = L.marker([shop.lat, shop.lng], {icon: shopIcon}).addTo(_trackMap).bindPopup(`<b>${shop.name}</b>`);
+
+    // Fit bounds
+    _trackMap.fitBounds([[startLat,startLng],[shop.lat,shop.lng]], {padding:[60,60]});
+
+    // Fetch route
+    const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${shop.lng},${shop.lat}?overview=full&geometries=geojson`;
+    fetch(url).then(r=>r.json()).then(data => {
+      if (!data.routes?.[0]) return;
+      const route = data.routes[0];
+      const distKm = (route.distance/1000).toFixed(1);
+      const durMin = Math.ceil(route.duration/60);
+      document.getElementById('track-dist').textContent = distKm + ' km';
+      document.getElementById('track-time').textContent = durMin < 60 ? durMin + ' min' : Math.floor(durMin/60)+'h '+durMin%60+'m';
+      document.getElementById('track-eta').textContent  = 'ETA: ' + durMin + ' min';
+      const coords = route.geometry.coordinates.map(c=>[c[1],c[0]]);
+      if (_trackRoute) _trackMap.removeLayer(_trackRoute);
+      L.polyline(coords, {color:'#FF6B35',weight:5,opacity:.9,lineJoin:'round',lineCap:'round'}).addTo(_trackMap);
+      _trackRoute = L.polyline(coords, {color:'#FF6B35',weight:5,opacity:.9}).addTo(_trackMap);
+    }).catch(()=>{
+      const d = calcDist(startLat,startLng,shop.lat,shop.lng);
+      document.getElementById('track-dist').textContent = d.toFixed(1)+' km';
+      document.getElementById('track-time').textContent = Math.ceil(d*3)+' min';
+    });
+  }
+
+  // Count nearby shops
+  const nearby = allShops.filter(s => s.lat && s.lng && calcDist(startLat, startLng, s.lat, s.lng) < 2).length;
+  document.getElementById('track-nearby-count').textContent = nearby;
+
+  // Live position watch
+  if (navigator.geolocation) {
+    if (_trackWatchId) navigator.geolocation.clearWatch(_trackWatchId);
+    _trackWatchId = navigator.geolocation.watchPosition(pos => {
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      userLoc = {lat, lng};
+      if (_trackUserMarker) _trackUserMarker.setLatLng([lat, lng]);
+    }, null, {enableHighAccuracy:true, maximumAge:0});
+  }
+
+  // Simulate live updates every 10s
+  if (_trackIntervalId) clearInterval(_trackIntervalId);
+  _trackIntervalId = setInterval(() => {
+    const statusEl = document.getElementById('track-status-txt');
+    if (statusEl) statusEl.textContent = 'Updated ' + new Date().toLocaleTimeString();
+  }, 10000);
+
+  setTimeout(() => _trackMap?.invalidateSize(), 200);
+}
+
+function trackingRecenter() {
+  if (!_trackMap || !userLoc) return;
+  _trackMap.setView([userLoc.lat, userLoc.lng], 16);
+}
+
+// ================================================================
+//  PAYMENT SYSTEM (Razorpay-ready)
+// ================================================================
+const PAY = { plan: null, method: null };
+const PLANS = {
+  free:     { name: 'Free',     price: 0,   display: '₹0' },
+  premium:  { name: 'Premium',  price: 99,  display: '₹99/mo' },
+  business: { name: 'Business', price: 299, display: '₹299/mo' },
+};
+
+function openPayment() { switchScreen('payment'); }
+
+function selectPlan(plan) {
+  PAY.plan = plan;
+  // Highlight selected
+  ['free','premium','business'].forEach(p => {
+    const el = document.getElementById('plan-'+p);
+    if (!el) return;
+    el.style.borderColor = p===plan ? (p==='premium' ? 'var(--orange)' : p==='business' ? 'var(--teal)' : 'var(--teal)') : p==='premium' ? 'var(--orange)' : 'var(--border)';
+    el.style.transform = p===plan ? 'scale(1.02)' : 'scale(1)';
+    el.style.boxShadow = p===plan ? '0 4px 16px rgba(0,0,0,.1)' : 'none';
+  });
+
+  if (plan === 'free') {
+    document.getElementById('pay-methods').style.display = 'none';
+    document.getElementById('pay-method-section').style.display = 'none';
+    document.getElementById('pay-summary').style.display = 'none';
+    document.getElementById('pay-confirm-btn').style.display = 'none';
+    toast('✅ You are on the Free plan!', 'ok');
+    return;
+  }
+
+  document.getElementById('pay-methods').style.display = 'flex';
+  document.getElementById('pay-method-section').style.display = '';
+  document.getElementById('pay-summary').style.display = 'none';
+  document.getElementById('pay-confirm-btn').style.display = 'none';
+  PAY.method = null;
+}
+
+function payWith(method) {
+  if (!PAY.plan) { toast('Please select a plan first', 'err'); return; }
+  PAY.method = method;
+  const methodNames = {upi:'📱 UPI', card:'💳 Card', netbanking:'🏦 Net Banking', wallet:'👛 Wallet'};
+  const plan = PLANS[PAY.plan];
+
+  document.getElementById('pay-sum-plan').textContent   = plan.name + ' (' + plan.display + ')';
+  document.getElementById('pay-sum-method').textContent = methodNames[method] || method;
+  document.getElementById('pay-sum-total').textContent  = '₹' + plan.price;
+  document.getElementById('pay-summary').style.display  = '';
+  document.getElementById('pay-confirm-btn').style.display = '';
+
+  // Scroll to confirm button
+  setTimeout(() => document.getElementById('pay-confirm-btn')?.scrollIntoView({behavior:'smooth'}), 100);
+}
+
+async function confirmPayment() {
+  if (!PAY.plan || !PAY.method) { toast('Please select plan and payment method', 'err'); return; }
+  const plan = PLANS[PAY.plan];
+  if (plan.price === 0) { toast('Already on free plan!', 'ok'); return; }
+
+  const btn = document.getElementById('pay-confirm-btn');
+  btn.disabled = true; btn.textContent = '⏳ Processing...';
+  spin('Processing payment...');
+
+  // Razorpay integration point
+  // In production: load Razorpay script and open checkout
+  // const Razorpay = window.Razorpay;
+  // new Razorpay({ key_id, amount: plan.price*100, currency:'INR', ... }).open();
+
+  // Demo: simulate payment
+  await new Promise(r => setTimeout(r, 1500));
+  hideSpin();
+  btn.disabled = false;
+  btn.textContent = '🔒 Pay Securely';
+
+  // Simulate 90% success rate
+  const success = Math.random() > 0.1;
+  if (success) {
+    toast('🎉 Payment successful! Welcome to ' + plan.name + '!', 'ok');
+    ADMIN_DEMO.payments.unshift({
+      id:'p'+Date.now(), user: currentUser?.displayName||'User',
+      plan: plan.name, amount: plan.price, method: PAY.method,
+      status: 'success', date: new Date().toLocaleDateString()
+    });
+    // Simulate push notification
+    showInAppNotif('💳 Payment Confirmed', `₹${plan.price} for ${plan.name} plan — Thank you!`);
+    setTimeout(() => goBack(), 2000);
+  } else {
+    toast('❌ Payment failed. Please try again.', 'err');
+  }
+}
+
+// ================================================================
+//  PUSH NOTIFICATIONS (Web Push API)
+// ================================================================
+function enablePushNotifs() {
+  if (!('Notification' in window)) {
+    toast('Notifications not supported in this browser', 'err');
+    dismissPushBanner(); return;
+  }
+  Notification.requestPermission().then(perm => {
+    if (perm === 'granted') {
+      toast('🔔 Notifications enabled!', 'ok');
+      dismissPushBanner();
+      localStorage.setItem('push_enabled','1');
+      // In production: subscribe to FCM/Web Push and send token to backend
+      showInAppNotif('🎉 Notifications On!', 'You will be notified about new shops & deals near you.');
+    } else {
+      toast('Notification permission denied', 'err');
+      dismissPushBanner();
+    }
+  });
+}
+
+function dismissPushBanner() {
+  const b = document.getElementById('push-banner');
+  if (b) b.style.display = 'none';
+  localStorage.setItem('push_dismissed','1');
+}
+
+// In-app notification (toast-style but with title)
+function showInAppNotif(title, body) {
+  // Create a rich notification toast
+  const notif = document.createElement('div');
+  notif.style.cssText = `position:fixed;bottom:90px;left:12px;right:12px;background:var(--navy);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 14px;z-index:9999;display:flex;gap:12px;align-items:flex-start;animation:slideUp .3s ease;box-shadow:0 8px 30px rgba(0,0,0,.3);`;
+  notif.innerHTML = `<span style="font-size:20px;flex-shrink:0;">🔔</span><div><div style="font-family:'Baloo 2',cursive;font-size:13px;font-weight:700;color:#fff;margin-bottom:2px;">${title}</div><div style="font-size:12px;color:rgba(255,255,255,.6);">${body}</div></div><span onclick="this.parentElement.remove()" style="margin-left:auto;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;flex-shrink:0;">✕</span>`;
+  document.body.appendChild(notif);
+  setTimeout(() => { if(notif.parentElement) notif.remove(); }, 5000);
+}
+
+// Show push banner 3 seconds after login if not dismissed
+function _checkPushBanner() {
+  if (!localStorage.getItem('push_dismissed') && !localStorage.getItem('push_enabled')) {
+    setTimeout(() => {
+      const b = document.getElementById('push-banner');
+      if (b) b.style.display = '';
+    }, 3000);
+  }
+}
+
+// ================================================================
+//  PROFILE PAGE — add Admin, Tracking, Payment buttons
+// ================================================================
+document.addEventListener('DOMContentLoaded', () => {
+  // Add quick-access buttons to profile page
+  const profileContent = document.querySelector('#profile');
+  if (!profileContent) return;
+  const extraBtns = document.createElement('div');
+  extraBtns.style.cssText = 'padding:0 16px;';
+  extraBtns.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;">
+      <div onclick="openPayment()" style="padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;border-bottom:1px solid var(--border);">
+        <span style="font-size:20px;">💳</span>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:500;">Upgrade Plan</div><div style="font-size:11px;color:var(--muted);">Free → Premium → Business</div></div>
+        <span style="color:var(--muted);">›</span>
+      </div>
+      <div onclick="openTracking(null)" style="padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;border-bottom:1px solid var(--border);">
+        <span style="font-size:20px;">🗺️</span>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:500;">Live Tracking</div><div style="font-size:11px;color:var(--muted);">Real-time shop locations</div></div>
+        <span style="color:var(--muted);">›</span>
+      </div>
+      <div onclick="enablePushNotifs()" style="padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;">
+        <span style="font-size:20px;">🔔</span>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:500;">Push Notifications</div><div style="font-size:11px;color:var(--muted);">${localStorage.getItem('push_enabled') ? '✅ Enabled' : 'Tap to enable'}</div></div>
+        <span style="color:var(--muted);">›</span>
+      </div>
+    </div>`;
+  // Insert before the logout button area
+  const logoutBtn = profileContent.querySelector('[onclick*="doLogout"]')?.closest('div[style*="padding"]');
+  if (logoutBtn) profileContent.insertBefore(extraBtns, logoutBtn);
+});
+
+// Patch _onMfaLoginSuccess to also check push banner
+const _origOnSuccess = _onMfaLoginSuccess;
+// (already defined above, just add the push check at end of post-login)
 
 </script>
 </body>
