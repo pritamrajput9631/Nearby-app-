@@ -152,13 +152,18 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
 /* ===== CATEGORIES ===== */
 .cats{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
 .cats::-webkit-scrollbar{display:none;}
-.cat-chip{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:68px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:10px 6px;cursor:pointer;transition:all .2s;text-align:center;}
+.cat-chip{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:78px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:10px 6px;cursor:pointer;transition:all .2s;text-align:center;}
 .cat-chip:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(255,107,53,.2);}
 .cat-chip:hover,.cat-chip.active{background:var(--orange);border-color:var(--orange);}
 .cat-chip:hover .cat-label,.cat-chip.active .cat-label{color:#fff;}
 .cat-chip:hover .cat-icon,.cat-chip.active .cat-icon{background:rgba(255,255,255,.2);animation:pulse .6s ease;}
 .cat-icon{width:34px;height:34px;border-radius:9px;background:var(--orange-light);display:flex;align-items:center;justify-content:center;font-size:17px;transition:background .2s;}
-.cat-label{font-size:10px;color:var(--muted);font-weight:500;white-space:nowrap;transition:color .2s;}
+.cat-label{font-size:10px;color:var(--muted);font-weight:500;white-space:normal;word-break:break-word;line-height:1.2;min-height:24px;display:flex;align-items:center;justify-content:center;transition:color .2s;}
+.brand-logo{padding:0;overflow:hidden;}
+.brand-logo svg{width:100%;height:100%;display:block;}
+.realistic-icon{padding:0;overflow:hidden;background:transparent;box-shadow:0 6px 14px rgba(18,25,44,.12);}
+.realistic-icon svg{width:100%;height:100%;display:block;}
+.cat-chip:hover .realistic-icon,.cat-chip.active .realistic-icon,.exp-cat:hover .realistic-icon,.exp-cat:active .realistic-icon{background:transparent;}
 
 /* ===== ROOM CARDS ===== */
 .rooms-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
@@ -477,7 +482,7 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
 .exp-cat:hover .exp-label,.exp-cat:active .exp-label{color:#fff;}
 .exp-cat:hover .exp-icon,.exp-cat:active .exp-icon{background:rgba(255,255,255,.2);}
 .exp-icon{width:44px;height:44px;border-radius:12px;background:var(--orange-light);display:flex;align-items:center;justify-content:center;font-size:22px;transition:background .2s;}
-.exp-label{font-size:11px;color:var(--muted);font-weight:500;transition:color .2s;}
+.exp-label{font-size:11px;color:var(--muted);font-weight:500;line-height:1.25;word-break:break-word;min-height:28px;display:flex;align-items:center;justify-content:center;transition:color .2s;}
 /* Dashboard */
 .dash-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;}
 .dash-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0;}
@@ -934,11 +939,7 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
         <span id="hero-loc-text">Detecting...</span>
       </div>
     </div>
-    <div class="hero-stats">
-      <div class="hero-stat"><div class="hero-stat-val" id="stat-shops">—</div><div class="hero-stat-lbl">Shops Nearby</div></div>
-      <div class="hero-stat"><div class="hero-stat-val" id="stat-rooms">—</div><div class="hero-stat-lbl">Rooms Available</div></div>
-      <div class="hero-stat"><div class="hero-stat-val">Free</div><div class="hero-stat-lbl">Always</div></div>
-    </div>
+    <div class="hero-stats" id="hero-stats" style="display:none;"></div>
     <!-- Location denied fallback bar -->
     <div class="loc-denied-bar hidden" id="loc-denied-bar">
       <div class="loc-denied-ico">📍</div>
@@ -966,27 +967,33 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
       <div class="cat-chip active" id="hcat-Room" onclick="selectHomeCat(this,'Room')"><div class="cat-icon">🏠</div><div class="cat-label">Room/PG</div></div>
       <div class="cat-chip" id="hcat-Grocery" onclick="selectHomeCat(this,'Grocery')"><div class="cat-icon">🛒</div><div class="cat-label">Grocery</div></div>
       <div class="cat-chip" id="hcat-Restaurant" onclick="selectHomeCat(this,'Restaurant')"><div class="cat-icon">🍽️</div><div class="cat-label">Restaurant</div></div>
-      <div class="cat-chip" id="hcat-Petrol" onclick="selectHomeCat(this,'Petrol Pump')"><div class="cat-icon">⛽</div><div class="cat-label">Petrol Pump</div></div>
+      <div class="cat-chip" id="hcat-Petrol" onclick="selectHomeCat(this,'Petrol Pump/CNG')"><div class="cat-icon">⛽</div><div class="cat-label">Petrol Pump/CNG</div></div>
       <div class="cat-chip" id="hcat-ATM" onclick="selectHomeCat(this,'ATM Machine')"><div class="cat-icon">🏧</div><div class="cat-label">ATM Machine</div></div>
       <div class="cat-chip" id="hcat-Bank" onclick="selectHomeCat(this,'Bank')"><div class="cat-icon">🏦</div><div class="cat-label">Bank</div></div>
       <div class="cat-chip" id="hcat-Hotel" onclick="selectHomeCat(this,'Hotel')"><div class="cat-icon">🏨</div><div class="cat-label">Hotel</div></div>
       <div class="cat-chip" id="hcat-School" onclick="selectHomeCat(this,'School')"><div class="cat-icon">🏫</div><div class="cat-label">School</div></div>
       <div class="cat-chip" id="hcat-College" onclick="selectHomeCat(this,'College')"><div class="cat-icon">🎓</div><div class="cat-label">College</div></div>
-      <div class="cat-chip" id="hcat-Swiggy" onclick="selectHomeCat(this,'Swiggy')"><div class="cat-icon" style="background:#f97316;font-size:14px;font-weight:700;color:#fff;border-radius:9px;">S</div><div class="cat-label">Swiggy</div></div>
-      <div class="cat-chip" id="hcat-Zomato" onclick="selectHomeCat(this,'Zomato')"><div class="cat-icon" style="background:#e23744;font-size:14px;font-weight:700;color:#fff;border-radius:9px;">Z</div><div class="cat-label">Zomato</div></div>
-      <div class="cat-chip" id="hcat-Dominos" onclick="selectHomeCat(this,'Dominos')"><div class="cat-icon" style="background:#006491;font-size:14px;font-weight:700;color:#fff;border-radius:9px;">D</div><div class="cat-label">Domino's</div></div>
+      <div class="cat-chip" id="hcat-Swiggy" onclick="selectHomeCat(this,'Swiggy')"><div class="cat-icon brand-logo"><svg viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" rx="9" fill="#F97316"/><path d="M18.5 7c-4.7 0-8.1 3.1-8.1 7.5 0 1.8.7 3.6 1.9 5l5.5 6.4c.4.5 1.1.5 1.5 0l5.4-6.3c1.3-1.5 2-3.3 2-5.1 0-4.4-3.4-7.5-8.2-7.5zm-.1 3.8c1.7 0 2.9.8 3.3 2.2h-2.6c-.8 0-1.5.6-1.5 1.4 0 .8.7 1.4 1.5 1.4h2.7c-.4 1.3-1.6 2.1-3.3 2.1-2.1 0-3.8-1.5-3.8-3.6s1.7-3.5 3.7-3.5z" fill="#fff"/></svg></div><div class="cat-label">Swiggy</div></div>
+      <div class="cat-chip" id="hcat-Zomato" onclick="selectHomeCat(this,'Zomato')"><div class="cat-icon brand-logo"><svg viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" rx="9" fill="#E23744"/><path d="M10 11h16v2.3L14.8 24.7H26V27H10v-2.2L21.3 13.3H10z" fill="#fff"/></svg></div><div class="cat-label">Zomato</div></div>
+      <div class="cat-chip" id="hcat-Dominos" onclick="selectHomeCat(this,'Dominos')"><div class="cat-icon brand-logo"><svg viewBox="0 0 36 36" aria-hidden="true"><g transform="translate(18 18) rotate(45) translate(-18 -18)"><rect x="8" y="8" width="20" height="20" rx="4" fill="#fff"/><path d="M8 8h20v10H8z" fill="#E31837"/><path d="M8 18h20v10H8z" fill="#0066B2"/><circle cx="15" cy="13" r="2" fill="#fff"/><circle cx="15" cy="23" r="2" fill="#fff"/><circle cx="21" cy="23" r="2" fill="#fff"/></g></svg></div><div class="cat-label">Domino's</div></div>
       <div class="cat-chip" id="hcat-Gym" onclick="selectHomeCat(this,'Gym')"><div class="cat-icon">💪</div><div class="cat-label">Gym</div></div>
       <div class="cat-chip" id="hcat-Medical" onclick="selectHomeCat(this,'Medical')"><div class="cat-icon">💊</div><div class="cat-label">Medical</div></div>
       <div class="cat-chip" id="hcat-Gas" onclick="selectHomeCat(this,'Gas')"><div class="cat-icon">🔥</div><div class="cat-label">Gas</div></div>
       <div class="cat-chip" id="hcat-Furniture" onclick="selectHomeCat(this,'Furniture')"><div class="cat-icon">🪑</div><div class="cat-label">Furniture</div></div>
-      <div class="cat-chip" id="hcat-Books" onclick="selectHomeCat(this,'Books')"><div class="cat-icon">📚</div><div class="cat-label">Books</div></div>
-      <div class="cat-chip" id="hcat-Cake" onclick="selectHomeCat(this,'Cake')"><div class="cat-icon">🎂</div><div class="cat-label">Cake Shop</div></div>
+      <div class="cat-chip" id="hcat-Books" onclick="selectHomeCat(this,'Book & Stationery Store')"><div class="cat-icon">📚</div><div class="cat-label">Book & Stationery Store</div></div>
+      <div class="cat-chip" id="hcat-Cake" onclick="selectHomeCat(this,'Cake')"><div class="cat-icon">🎂</div><div class="cat-label">Cake</div></div>
       <div class="cat-chip" id="hcat-CarWash" onclick="selectHomeCat(this,'Car Wash')"><div class="cat-icon">🚗</div><div class="cat-label">Car Wash</div></div>
-      <div class="cat-chip" id="hcat-Fruit" onclick="selectHomeCat(this,'Fruit')"><div class="cat-icon">🍎</div><div class="cat-label">Fruit</div></div>
-      <div class="cat-chip" id="hcat-Vegetables" onclick="selectHomeCat(this,'Vegetables')"><div class="cat-icon">🥦</div><div class="cat-label">Vegetables</div></div>
-      <div class="cat-chip" id="hcat-Electric" onclick="selectHomeCat(this,'Electric')"><div class="cat-icon">🔌</div><div class="cat-label">Electric</div></div>
-      <div class="cat-chip" id="hcat-Mobile" onclick="selectHomeCat(this,'Mobile Shop')"><div class="cat-icon">📱</div><div class="cat-label">Mobile Shop</div></div>
-      <div class="cat-chip" id="hcat-Exclusive" onclick="selectHomeCat(this,'Exclusive Store')"><div class="cat-icon">🏬</div><div class="cat-label">Exclusive Store</div></div>
+      <div class="cat-chip" id="hcat-Fruit" onclick="selectHomeCat(this,'Fruit Shop')"><div class="cat-icon">🍎</div><div class="cat-label">Fruit Shop</div></div>
+      <div class="cat-chip" id="hcat-Vegetables" onclick="selectHomeCat(this,'Vegetable')"><div class="cat-icon">🥦</div><div class="cat-label">Vegetable</div></div>
+      <div class="cat-chip" id="hcat-Electric" onclick="selectHomeCat(this,'Electronics Repair')"><div class="cat-icon">🔌</div><div class="cat-label">Electronics Repair</div></div>
+      <div class="cat-chip" id="hcat-Mobile" onclick="selectHomeCat(this,'Mobile')"><div class="cat-icon">📱</div><div class="cat-label">Mobile</div></div>
+      <div class="cat-chip" id="hcat-Exclusive" onclick="selectHomeCat(this,'Mobile Brand Store')"><div class="cat-icon">🏬</div><div class="cat-label">Mobile Brand Store</div></div>
+      <div class="cat-chip" id="hcat-Mall" onclick="selectHomeCat(this,'Shopping Mall')"><div class="cat-icon">🏬</div><div class="cat-label">Shopping Mall</div></div>
+      <div class="cat-chip" id="hcat-Jewellery" onclick="selectHomeCat(this,'Jewellery Shop')"><div class="cat-icon">💍</div><div class="cat-label">Jewellery Shop</div></div>
+      <div class="cat-chip" id="hcat-Cinema" onclick="selectHomeCat(this,'Cinema Hall / Multiplex')"><div class="cat-icon">🎬</div><div class="cat-label">Cinema Hall</div></div>
+      <div class="cat-chip" id="hcat-Garage" onclick="selectHomeCat(this,'Garage / Car Repair')"><div class="cat-icon">🚗</div><div class="cat-label">Garage</div></div>
+      <div class="cat-chip" id="hcat-EV" onclick="selectHomeCat(this,'EV Charging Station')"><div class="cat-icon">⚡</div><div class="cat-label">EV Charging</div></div>
+      <div class="cat-chip" id="hcat-Property" onclick="selectHomeCat(this,'Property for Sale')"><div class="cat-icon">🏠</div><div class="cat-label">Property for Sale</div></div>
       </div>
       <button class="cat-nav-btn" id="cats-btn-right" onclick="scrollCatsRight()">›</button>
     </div>
@@ -1001,11 +1008,7 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
 
     <!-- Rooms view -->
     <div id="home-rooms-wrap">
-      <div class="rooms-scroll" id="home-rooms-scroll">
-        <div class="room-card"><div class="room-img" style="background:linear-gradient(135deg,#e2d9f3,#fce4d6)">🏠<div class="room-badge">Bachelor OK</div><div class="room-fav">❤️</div></div><div class="room-info"><div class="room-price">₹5,500 <span>/month</span></div><div class="room-name">1BHK Furnished Room</div><div class="room-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Shastri Nagar · 1.2 km</div><div class="room-tags"><span class="tag">WiFi</span><span class="tag teal">Attached Bath</span></div></div></div>
-        <div class="room-card"><div class="room-img" style="background:linear-gradient(135deg,#d4f0e8,#d6e8fc)">🛏️<div class="room-badge">PG</div><div class="room-fav">🤍</div></div><div class="room-info"><div class="room-price">₹3,200 <span>/month</span></div><div class="room-name">Single Room PG + Meals</div><div class="room-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Gandhi Chowk · 0.8 km</div><div class="room-tags"><span class="tag">AC</span><span class="tag teal">Meals</span></div></div></div>
-        <div class="room-card"><div class="room-img" style="background:linear-gradient(135deg,#fef3d4,#fce4d6)">🏡<div class="room-badge">Share</div><div class="room-fav">🤍</div></div><div class="room-info"><div class="room-price">₹4,000 <span>/month</span></div><div class="room-name">2BHK Flat Share</div><div class="room-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Rail Vihar · 2.1 km</div><div class="room-tags"><span class="tag">Parking</span></div></div></div>
-      </div>
+      <div class="rooms-scroll" id="home-rooms-scroll"></div>
     </div>
 
     <!-- Shops/places view for all other categories -->
@@ -1038,24 +1041,30 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
     <div class="filter-pill" onclick="applyFilter(this,'Grocery')">🛒 Grocery</div>
     <div class="filter-pill" onclick="applyFilter(this,'Restaurant')">🍽️ Restaurant</div>
     <div class="filter-pill" onclick="applyFilter(this,'Hotel')">🏨 Hotel</div>
-    <div class="filter-pill" onclick="applyFilter(this,'Petrol Pump')">⛽ Petrol Pump</div>
+    <div class="filter-pill" onclick="applyFilter(this,'Petrol Pump/CNG')">⛽ Petrol Pump/CNG</div>
+    <div class="filter-pill" onclick="applyFilter(this,'Petrol Pump/CNG (CNG)')">🟢 CNG</div>
     <div class="filter-pill" onclick="applyFilter(this,'ATM Machine')">🏧 ATM Machine</div>
     <div class="filter-pill" onclick="applyFilter(this,'Bank')">🏦 Bank</div>
+    <div class="filter-pill" onclick="applyFilter(this,'Shopping Mall')">🏬 Shopping Mall</div>
+    <div class="filter-pill" onclick="applyFilter(this,'Jewellery Shop')">💍 Jewellery</div>
+    <div class="filter-pill" onclick="applyFilter(this,'Cinema Hall / Multiplex')">🎬 Cinema</div>
+    <div class="filter-pill" onclick="applyFilter(this,'Garage / Car Repair')">🚗 Garage</div>
+    <div class="filter-pill" onclick="applyFilter(this,'EV Charging Station')">⚡ EV Charging</div>
+    <div class="filter-pill" onclick="applyFilter(this,'Property for Sale')">🏠 Property</div>
     <div class="filter-pill" onclick="applyFilter(this,'School')">🏫 School</div>
     <div class="filter-pill" onclick="applyFilter(this,'College')">🎓 College</div>
     <div class="filter-pill" onclick="applyFilter(this,'Gym')">💪 Gym</div>
     <div class="filter-pill" onclick="applyFilter(this,'Gas')">🔥 Gas</div>
     <div class="filter-pill" onclick="applyFilter(this,'Furniture')">🪑 Furniture</div>
-    <div class="filter-pill" onclick="applyFilter(this,'Books')">📚 Books</div>
-    <div class="filter-pill" onclick="applyFilter(this,'Electric')">🔌 Electric</div>
+    <div class="filter-pill" onclick="applyFilter(this,'Book & Stationery Store')">📚 Book & Stationery Store</div>
+    <div class="filter-pill" onclick="applyFilter(this,'Electronics Repair')">🔌 Electronics Repair</div>
     <div class="filter-pill" onclick="applyFilter(this,'Medical')">💊 Medical</div>
     <div class="filter-pill" onclick="applyFilter(this,'Cake')">🎂 Cake</div>
     <div class="filter-pill" onclick="applyFilter(this,'Car Wash')">🚗 Car Wash</div>
-    <div class="filter-pill" onclick="applyFilter(this,'Fruit')">🍎 Fruit</div>
-    <div class="filter-pill" onclick="applyFilter(this,'Vegetables')">🥦 Vegetables</div>
-    <div class="filter-pill" onclick="applyFilter(this,'Grocery')">🛒 Grocery</div>
-    <div class="filter-pill" onclick="applyFilter(this,'Mobile Shop')">📱 Mobile Shop</div>
-    <div class="filter-pill" onclick="applyFilter(this,'Exclusive Store')">🏬 Exclusive Store</div>
+    <div class="filter-pill" onclick="applyFilter(this,'Fruit Shop')">🍎 Fruit Shop</div>
+    <div class="filter-pill" onclick="applyFilter(this,'Vegetable')">🥦 Vegetable</div>
+    <div class="filter-pill" onclick="applyFilter(this,'Mobile')">📱 Mobile</div>
+    <div class="filter-pill" onclick="applyFilter(this,'Mobile Brand Store')">🏬 Mobile Brand Store</div>
   </div>
 
   <div class="section" style="padding-bottom:20px;">
@@ -1085,13 +1094,31 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
     <div class="filter-pill">📶 WiFi</div>
     <div class="filter-pill">❄️ AC</div>
   </div>
-  <div class="rooms-grid">
-    <div class="room-card-v"><div class="room-img-v" style="background:linear-gradient(135deg,#e2d9f3,#fce4d6)">🏠<div class="room-badge" style="position:absolute;top:5px;left:5px;font-size:9px;">Bachelor OK</div></div><div class="room-info-v"><div class="room-price-v">₹5,500<span style="font-size:10px;color:var(--muted);font-weight:400;">/mo</span></div><div class="room-name-v">1BHK Furnished</div><div class="room-loc-v">Shastri Nagar · 1.2km</div></div></div>
-    <div class="room-card-v"><div class="room-img-v" style="background:linear-gradient(135deg,#d4f0e8,#d6e8fc)">🛏️<div class="room-badge" style="position:absolute;top:5px;left:5px;font-size:9px;">PG</div></div><div class="room-info-v"><div class="room-price-v">₹3,200<span style="font-size:10px;color:var(--muted);font-weight:400;">/mo</span></div><div class="room-name-v">Single PG + Meals</div><div class="room-loc-v">Gandhi Chowk · 0.8km</div></div></div>
-    <div class="room-card-v"><div class="room-img-v" style="background:linear-gradient(135deg,#fef3d4,#fce4d6)">🏡<div class="room-badge" style="position:absolute;top:5px;left:5px;font-size:9px;">Share</div></div><div class="room-info-v"><div class="room-price-v">₹4,000<span style="font-size:10px;color:var(--muted);font-weight:400;">/mo</span></div><div class="room-name-v">2BHK Flat Share</div><div class="room-loc-v">Rail Vihar · 2.1km</div></div></div>
-    <div class="room-card-v"><div class="room-img-v" style="background:linear-gradient(135deg,#e8f4d6,#d6f4e8)">🏘️<div class="room-badge" style="position:absolute;top:5px;left:5px;font-size:9px;">Bachelor OK</div></div><div class="room-info-v"><div class="room-price-v">₹6,000<span style="font-size:10px;color:var(--muted);font-weight:400;">/mo</span></div><div class="room-name-v">2BHK Semi-furnished</div><div class="room-loc-v">Civil Lines · 3.0km</div></div></div>
-    <div class="room-card-v"><div class="room-img-v" style="background:linear-gradient(135deg,#f4d6f0,#d6e4f4)">🛋️<div class="room-badge" style="position:absolute;top:5px;left:5px;font-size:9px;">PG</div></div><div class="room-info-v"><div class="room-price-v">₹2,800<span style="font-size:10px;color:var(--muted);font-weight:400;">/mo</span></div><div class="room-name-v">Hostel Style PG</div><div class="room-loc-v">Station Rd · 0.5km</div></div></div>
-    <div class="room-card-v"><div class="room-img-v" style="background:linear-gradient(135deg,#d6f0f4,#e8d6f4)">🏠<div class="room-badge" style="position:absolute;top:5px;left:5px;font-size:9px;">Couple OK</div></div><div class="room-info-v"><div class="room-price-v">₹7,500<span style="font-size:10px;color:var(--muted);font-weight:400;">/mo</span></div><div class="room-name-v">1BHK Premium</div><div class="room-loc-v">Koyla Nagar · 1.9km</div></div></div>
+  <div class="rooms-grid"></div>
+</div>
+
+<!-- PROPERTIES SCREEN -->
+<div id="properties" class="screen">
+  <div class="topbar">
+    <div class="topbar-back">
+      <button class="back-btn" onclick="goBack()">←</button>
+      <div class="topbar-logo"><div class="topbar-logo-icon">📍</div><div class="topbar-logo-text">Near<span>by</span></div></div>
+    </div>
+    <div class="user-av" id="av-properties" onclick="switchScreen('profile')" title="My Profile">U</div>
+  </div>
+  <div class="section" style="padding-bottom:20px;">
+    <div id="property-filters-host"></div>
+    <div class="sec-header">
+      <div class="sec-title" id="property-title">Properties For Sale Near You</div>
+      <div style="font-size:12px;color:var(--muted);" id="property-hint">Showing all property types</div>
+    </div>
+    <div class="shop-list" id="properties-list"></div>
+    <div id="properties-empty" style="display:none;text-align:center;padding:30px 20px;color:var(--muted);">
+      <div style="font-size:40px;margin-bottom:10px;">🏠</div>
+      <div style="font-size:15px;font-weight:500;margin-bottom:6px;" id="properties-empty-title">No properties listed yet</div>
+      <div style="font-size:12px;margin-bottom:14px;" id="properties-empty-sub">Property listings will appear here automatically when owners add them.</div>
+      <button onclick="switchScreen('list-shop')" style="background:var(--orange);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;cursor:pointer;font-family:'Noto Sans',sans-serif;font-weight:600;">+ List Property</button>
+    </div>
   </div>
 </div>
 
@@ -1128,6 +1155,7 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
     <div class="form-group"><div class="form-label">Owner Name *</div><input class="form-inp" id="f-owner" placeholder="Your full name"/></div>
     <div class="form-group"><div class="form-label">Mobile Number *</div><input class="form-inp" id="f-phone" type="tel" placeholder="+91 XXXXX XXXXX"/></div>
     <div class="form-group"><div class="form-label">Full Address *</div><input class="form-inp" id="f-addr" placeholder="Street, Area, City"/></div>
+    <div id="dynamic-fields"></div>
     <div class="form-group">
       <div class="form-label">Pin Your Location on Map *</div>
       <button class="loc-btn" id="loc-btn-main" onclick="pickLocDirect()">
@@ -1140,12 +1168,12 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
     </div>
     <div class="form-group"><div class="form-label">Opening Hours</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><input class="form-inp" id="f-open" type="time"/><input class="form-inp" id="f-close" type="time"/></div></div>
     <div class="form-group">
-      <div class="form-label">Shop Photo (Optional)</div>
-      <div class="photo-upload" onclick="document.getElementById('photo-inp').click()"><div class="pu-icon">📸</div><p>Tap to upload photo of your shop</p></div>
+      <div class="form-label">Business Photos * (minimum 2)</div>
+      <div class="photo-upload" onclick="document.getElementById('photo-inp').click()"><div class="pu-icon">📸</div><p>Upload at least 2 clear real photos of your business</p></div>
       <input type="file" id="photo-inp" accept="image/*" multiple style="display:none" onchange="prevPhotos(this)"/>
       <div class="photo-preview" id="photo-prev"></div>
     </div>
-    <div class="form-group"><div class="form-label">Additional Info (Optional)</div><textarea class="form-inp" id="f-info" rows="3" placeholder="e.g. Home delivery available, EMI on furniture..."></textarea></div>
+    <div class="form-group"><div class="form-label">Business Description * (minimum 20 characters)</div><textarea class="form-inp" id="f-info" rows="3" placeholder="Tell users clearly what you offer, timings, speciality, services..."></textarea></div>
     <button class="submit-btn" id="sub-btn" onclick="submitShop()">✅ List My Business — FREE</button>
   </div>
 </div>
@@ -1225,6 +1253,7 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
 <div class="bottom-nav" id="bnav" style="display:none;">
   <div class="nav-item active" id="n-home" onclick="switchScreen('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></div>
   <div class="nav-item" id="n-rooms" onclick="switchScreen('rooms')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Rooms</span></div>
+  <div class="nav-item" id="n-properties" onclick="switchScreen('properties');loadPropertyListings()"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V10"/><path d="M9 22v-6h6v6"/></svg><span>Properties</span></div>
   <div class="nav-item" id="n-shops" onclick="switchScreen('explore')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg><span>Explore</span></div>
   <div class="nav-item" id="n-list" onclick="switchScreen('list-shop')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span>List Business</span></div>
   <div class="nav-item" id="n-profile" onclick="switchScreen('profile')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></div>
@@ -1247,28 +1276,34 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
     <div class="exp-cat" onclick="exploreCategory('Grocery')"><div class="exp-icon">🛒</div><div class="exp-label">Grocery</div></div>
     <div class="exp-cat" onclick="exploreCategory('Restaurant')"><div class="exp-icon">🍽️</div><div class="exp-label">Restaurant</div></div>
     <div class="exp-cat" onclick="exploreCategory('Hotel')"><div class="exp-icon">🏨</div><div class="exp-label">Hotel</div></div>
-    <div class="exp-cat" onclick="exploreCategory('Petrol Pump')"><div class="exp-icon">⛽</div><div class="exp-label">Petrol Pump</div></div>
+    <div class="exp-cat" onclick="exploreCategory('Petrol Pump/CNG')"><div class="exp-icon">⛽</div><div class="exp-label">Petrol Pump/CNG</div></div>
     <div class="exp-cat" onclick="exploreCategory('ATM Machine')"><div class="exp-icon">🏧</div><div class="exp-label">ATM Machine</div></div>
     <div class="exp-cat" onclick="exploreCategory('Bank')"><div class="exp-icon">🏦</div><div class="exp-label">Bank</div></div>
+    <div class="exp-cat" onclick="exploreCategory('Shopping Mall')"><div class="exp-icon">🏬</div><div class="exp-label">Shopping Mall</div></div>
+    <div class="exp-cat" onclick="exploreCategory('Jewellery Shop')"><div class="exp-icon">💍</div><div class="exp-label">Jewellery Shop</div></div>
+    <div class="exp-cat" onclick="exploreCategory('Cinema Hall / Multiplex')"><div class="exp-icon">🎬</div><div class="exp-label">Cinema Hall</div></div>
+    <div class="exp-cat" onclick="exploreCategory('Garage / Car Repair')"><div class="exp-icon">🚗</div><div class="exp-label">Garage / Car Repair</div></div>
+    <div class="exp-cat" onclick="exploreCategory('EV Charging Station')"><div class="exp-icon">⚡</div><div class="exp-label">EV Charging</div></div>
+    <div class="exp-cat" onclick="switchScreen('properties');loadPropertyListings()"><div class="exp-icon">🏠</div><div class="exp-label">Property for Sale</div></div>
     <div class="exp-cat" onclick="exploreCategory('School')"><div class="exp-icon">🏫</div><div class="exp-label">School</div></div>
     <div class="exp-cat" onclick="exploreCategory('College')"><div class="exp-icon">🎓</div><div class="exp-label">College</div></div>
-    <div class="exp-cat" onclick="exploreCategory('Swiggy')"><div class="exp-icon" style="background:#f97316;font-size:14px;font-weight:700;color:#fff;border-radius:9px;">S</div><div class="exp-label">Swiggy</div></div>
-    <div class="exp-cat" onclick="exploreCategory('Zomato')"><div class="exp-icon" style="background:#e23744;font-size:14px;font-weight:700;color:#fff;border-radius:9px;">Z</div><div class="exp-label">Zomato</div></div>
-    <div class="exp-cat" onclick="exploreCategory('Dominos')"><div class="exp-icon" style="background:#006491;font-size:14px;font-weight:700;color:#fff;border-radius:9px;">D</div><div class="exp-label">Domino's</div></div>
+    <div class="exp-cat" onclick="exploreCategory('Swiggy')"><div class="exp-icon brand-logo"><svg viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" rx="9" fill="#F97316"/><path d="M18.5 7c-4.7 0-8.1 3.1-8.1 7.5 0 1.8.7 3.6 1.9 5l5.5 6.4c.4.5 1.1.5 1.5 0l5.4-6.3c1.3-1.5 2-3.3 2-5.1 0-4.4-3.4-7.5-8.2-7.5zm-.1 3.8c1.7 0 2.9.8 3.3 2.2h-2.6c-.8 0-1.5.6-1.5 1.4 0 .8.7 1.4 1.5 1.4h2.7c-.4 1.3-1.6 2.1-3.3 2.1-2.1 0-3.8-1.5-3.8-3.6s1.7-3.5 3.7-3.5z" fill="#fff"/></svg></div><div class="exp-label">Swiggy</div></div>
+    <div class="exp-cat" onclick="exploreCategory('Zomato')"><div class="exp-icon brand-logo"><svg viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" rx="9" fill="#E23744"/><path d="M10 11h16v2.3L14.8 24.7H26V27H10v-2.2L21.3 13.3H10z" fill="#fff"/></svg></div><div class="exp-label">Zomato</div></div>
+    <div class="exp-cat" onclick="exploreCategory('Dominos')"><div class="exp-icon brand-logo"><svg viewBox="0 0 36 36" aria-hidden="true"><g transform="translate(18 18) rotate(45) translate(-18 -18)"><rect x="8" y="8" width="20" height="20" rx="4" fill="#fff"/><path d="M8 8h20v10H8z" fill="#E31837"/><path d="M8 18h20v10H8z" fill="#0066B2"/><circle cx="15" cy="13" r="2" fill="#fff"/><circle cx="15" cy="23" r="2" fill="#fff"/><circle cx="21" cy="23" r="2" fill="#fff"/></g></svg></div><div class="exp-label">Domino's</div></div>
     <div class="exp-cat" onclick="exploreCategory('Gym')"><div class="exp-icon">💪</div><div class="exp-label">Gym</div></div>
     <div class="exp-cat" onclick="exploreCategory('Medical')"><div class="exp-icon">💊</div><div class="exp-label">Medical</div></div>
     <div class="exp-cat" onclick="exploreCategory('Furniture')"><div class="exp-icon">🪑</div><div class="exp-label">Furniture</div></div>
-    <div class="exp-cat" onclick="exploreCategory('Books')"><div class="exp-icon">📚</div><div class="exp-label">Books</div></div>
+    <div class="exp-cat" onclick="exploreCategory('Book & Stationery Store')"><div class="exp-icon">📚</div><div class="exp-label">Book & Stationery Store</div></div>
     <div class="exp-cat" onclick="exploreCategory('Gas')"><div class="exp-icon">🔥</div><div class="exp-label">Gas</div></div>
-    <div class="exp-cat" onclick="exploreCategory('Cake')"><div class="exp-icon">🎂</div><div class="exp-label">Cake Shop</div></div>
+    <div class="exp-cat" onclick="exploreCategory('Cake')"><div class="exp-icon">🎂</div><div class="exp-label">Cake</div></div>
     <div class="exp-cat" onclick="exploreCategory('Car Wash')"><div class="exp-icon">🚗</div><div class="exp-label">Car Wash</div></div>
-    <div class="exp-cat" onclick="exploreCategory('Fruit')"><div class="exp-icon">🍎</div><div class="exp-label">Fruit</div></div>
-    <div class="exp-cat" onclick="exploreCategory('Vegetables')"><div class="exp-icon">🥦</div><div class="exp-label">Vegetables</div></div>
-    <div class="exp-cat" onclick="exploreCategory('Electric')"><div class="exp-icon">🔌</div><div class="exp-label">Electric</div></div>
+    <div class="exp-cat" onclick="exploreCategory('Fruit Shop')"><div class="exp-icon">🍎</div><div class="exp-label">Fruit Shop</div></div>
+    <div class="exp-cat" onclick="exploreCategory('Vegetable')"><div class="exp-icon">🥦</div><div class="exp-label">Vegetable</div></div>
+    <div class="exp-cat" onclick="exploreCategory('Electronics Repair')"><div class="exp-icon">🔌</div><div class="exp-label">Electronics Repair</div></div>
     <div class="exp-cat" onclick="exploreCategory('Laundry')"><div class="exp-icon">🧺</div><div class="exp-label">Laundry</div></div>
     <div class="exp-cat" onclick="exploreCategory('Tiffin')"><div class="exp-icon">🍱</div><div class="exp-label">Tiffin</div></div>
-    <div class="exp-cat" onclick="exploreCategory('Mobile Shop')"><div class="exp-icon">📱</div><div class="exp-label">Mobile Shop</div></div>
-    <div class="exp-cat" onclick="exploreCategory('Exclusive Store')"><div class="exp-icon">🏬</div><div class="exp-label">Exclusive Store</div></div>
+    <div class="exp-cat" onclick="exploreCategory('Mobile')"><div class="exp-icon">📱</div><div class="exp-label">Mobile</div></div>
+    <div class="exp-cat" onclick="exploreCategory('Mobile Brand Store')"><div class="exp-icon">🏬</div><div class="exp-label">Mobile Brand Store</div></div>
     <div class="exp-cat" onclick="switchScreen('rooms')"><div class="exp-icon">🏠</div><div class="exp-label">Rooms/PG</div></div>
   </div>
   <div id="explore-results" style="padding:0 16px 80px;display:none;">
@@ -1368,6 +1403,9 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
   <button id="sd-track-btn" onclick="sdLiveTrack()" style="margin:0 16px 12px;width:calc(100% - 32px);background:linear-gradient(135deg,#12192C,#1a2540);color:#0ABFA3;border:1px solid rgba(10,191,163,.3);border-radius:12px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Baloo 2',cursive;display:flex;align-items:center;justify-content:center;gap:8px;">
     <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 1.5s ease-in-out infinite;"></span>
     Live Track this Shop
+  </button>
+  <button id="sd-report-btn" onclick="sdReportListing()" style="margin:0 16px 12px;width:calc(100% - 32px);background:#fff4f4;color:#dc2626;border:1px solid rgba(220,38,38,.18);border-radius:12px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;">
+    Report this listing
   </button>
 
   <div class="sd-card">
@@ -1588,32 +1626,32 @@ const storage = firebase.storage();
 // ================================================================
 //  SAMPLE SHOPS DATA (sorted by distance automatically)
 // ================================================================
-const SAMPLE_SHOPS = [
-  {name:'Fresh Fruit Corner',      cat:'Fruit',        icon:'🍎', phone:'+919876543213', address:'Main Market Road',        hours:'6AM–8PM',  distKm:0.2, lat:23.7975, lng:86.4270, rating:4.3},
+const SAMPLE_SHOPS_DEMO = [
+  {name:'Fresh Fruit Corner',      cat:'Fruit Shop',        icon:'🍎', phone:'+919876543213', address:'Main Market Road',        hours:'6AM–8PM',  distKm:0.2, lat:23.7975, lng:86.4270, rating:4.3},
   {name:'Sharma General Store',    cat:'Grocery',      icon:'🛒', phone:'+919876543210', address:'Near Gandhi Chowk',       hours:'7AM–10PM', distKm:0.3, lat:23.7980, lng:86.4330, rating:4.5},
-  {name:'Hari Sabzi Wala',         cat:'Vegetables',   icon:'🥦', phone:'+919876543214', address:'Sabzi Mandi Lane',        hours:'6AM–7PM',  distKm:0.4, lat:23.7960, lng:86.4260, rating:4.1},
-  {name:'Ram Sabzi Bhandar',        cat:'Vegetables',   icon:'🥦', phone:'+919876543240', address:'Mandi Road Near Chowk',    hours:'5AM–8PM',  distKm:0.6, lat:23.7968, lng:86.4275, rating:4.2},
-  {name:'Shyam Fruit Corner',       cat:'Fruit',        icon:'🍎', phone:'+919876543241', address:'Station Road Market',      hours:'7AM–9PM',  distKm:0.7, lat:23.7972, lng:86.4285, rating:4.4},
-  {name:'Natraj Vegetable Store',   cat:'Vegetables',   icon:'🥦', phone:'+919876543242', address:'Gandhi Chowk',             hours:'6AM–7PM',  distKm:1.0, lat:23.7952, lng:86.4298, rating:3.9},
-  {name:'Laxmi Fruit Wala',         cat:'Fruit',        icon:'🍎', phone:'+919876543243', address:'Civil Lines Market',       hours:'7AM–8PM',  distKm:1.2, lat:23.7948, lng:86.4312, rating:4.3},
-  {name:'Organic Greens',           cat:'Vegetables',   icon:'🥦', phone:'+919876543244', address:'Bypass Road, Sector 2',   hours:'6AM–9PM',  distKm:1.5, lat:23.7935, lng:86.4325, rating:4.6},
-  {name:'Desi Fruit Market',        cat:'Fruit',        icon:'🍎', phone:'+919876543245', address:'Old Market Road',          hours:'6AM–8PM',  distKm:1.8, lat:23.7920, lng:86.4340, rating:4.1},
+  {name:'Hari Sabzi Wala',         cat:'Vegetable',   icon:'🥦', phone:'+919876543214', address:'Sabzi Mandi Lane',        hours:'6AM–7PM',  distKm:0.4, lat:23.7960, lng:86.4260, rating:4.1},
+  {name:'Ram Sabzi Bhandar',        cat:'Vegetable',   icon:'🥦', phone:'+919876543240', address:'Mandi Road Near Chowk',    hours:'5AM–8PM',  distKm:0.6, lat:23.7968, lng:86.4275, rating:4.2},
+  {name:'Shyam Fruit Corner',       cat:'Fruit Shop',        icon:'🍎', phone:'+919876543241', address:'Station Road Market',      hours:'7AM–9PM',  distKm:0.7, lat:23.7972, lng:86.4285, rating:4.4},
+  {name:'Natraj Vegetable Store',   cat:'Vegetable',   icon:'🥦', phone:'+919876543242', address:'Gandhi Chowk',             hours:'6AM–7PM',  distKm:1.0, lat:23.7952, lng:86.4298, rating:3.9},
+  {name:'Laxmi Fruit Wala',         cat:'Fruit Shop',        icon:'🍎', phone:'+919876543243', address:'Civil Lines Market',       hours:'7AM–8PM',  distKm:1.2, lat:23.7948, lng:86.4312, rating:4.3},
+  {name:'Organic Greens',           cat:'Vegetable',   icon:'🥦', phone:'+919876543244', address:'Bypass Road, Sector 2',   hours:'6AM–9PM',  distKm:1.5, lat:23.7935, lng:86.4325, rating:4.6},
+  {name:'Desi Fruit Market',        cat:'Fruit Shop',        icon:'🍎', phone:'+919876543245', address:'Old Market Road',          hours:'6AM–8PM',  distKm:1.8, lat:23.7920, lng:86.4340, rating:4.1},
   {name:'Punjabi Dhaba',           cat:'Restaurant',   icon:'🍽️', phone:'+919876543211', address:'Station Road',            hours:'8AM–11PM', distKm:0.5, lat:23.7940, lng:86.4290, rating:4.4},
   {name:'PowerZone Gym',           cat:'Gym',          icon:'💪', phone:'+919876543221', address:'Sports Complex Road',     hours:'5AM–10PM', distKm:0.6, lat:23.7950, lng:86.4310, rating:4.6},
   {name:'Indane Gas Agency',       cat:'Gas',          icon:'🔥', phone:'+919876543212', address:'Civil Lines',             hours:'9AM–6PM',  distKm:0.7, lat:23.7990, lng:86.4260, rating:3.9},
-  {name:'HP Petrol Pump',          cat:'Petrol Pump',  icon:'⛽', phone:'+919876543230', address:'Bypass Road',             hours:'24 Hours', distKm:0.8, lat:23.7985, lng:86.4290, rating:4.0},
+  {name:'HP Petrol Pump',          cat:'Petrol Pump/CNG',  icon:'⛽', phone:'+919876543230', address:'Bypass Road',             hours:'24 Hours', distKm:0.8, lat:23.7985, lng:86.4290, rating:4.0},
   {name:'SBI ATM Machine',         cat:'ATM Machine',  icon:'🏧', phone:'+919876543231', address:'Main Road, Chowk',        hours:'24 Hours', distKm:0.9, lat:23.7955, lng:86.4315, rating:3.8},
   {name:'State Bank of India',     cat:'Bank',         icon:'🏦', phone:'+919876543232', address:'Civil Lines, Main Branch', hours:'10AM–4PM', distKm:1.0, lat:23.7942, lng:86.4305, rating:4.0},
   {name:'New Life Furniture',      cat:'Furniture',    icon:'🪑', phone:'+919876543215', address:'Furniture Market',        hours:'10AM–8PM', distKm:0.9, lat:23.7935, lng:86.4320, rating:4.2},
   {name:'Sweet Moments Bakery',    cat:'Cake',         icon:'🎂', phone:'+919876543216', address:'MG Road',                 hours:'9AM–9PM',  distKm:1.0, lat:23.7960, lng:86.4350, rating:4.7},
-  {name:'Kitab Ghar Books',        cat:'Books',        icon:'📚', phone:'+919876543217', address:'Book Market Lane',        hours:'9AM–7PM',  distKm:1.1, lat:23.7970, lng:86.4270, rating:4.3},
+  {name:'Kitab Ghar Books',        cat:'Book & Stationery Store',        icon:'📚', phone:'+919876543217', address:'Book Market Lane',        hours:'9AM–7PM',  distKm:1.1, lat:23.7970, lng:86.4270, rating:4.3},
   {name:'Shine Auto Wash',         cat:'Car Wash',     icon:'🚗', phone:'+919876543218', address:'Bypass Road',             hours:'7AM–8PM',  distKm:1.3, lat:23.7930, lng:86.4320, rating:4.0},
-  {name:'Bijli Hardware',          cat:'Electric',     icon:'🔌', phone:'+919876543219', address:'Hardware Market',         hours:'9AM–8PM',  distKm:1.4, lat:23.7945, lng:86.4300, rating:4.1},
+  {name:'Bijli Hardware',          cat:'Electronics Repair', icon:'🔌', phone:'+919876543219', address:'Hardware Market',         hours:'9AM–8PM',  distKm:1.4, lat:23.7945, lng:86.4300, rating:4.1},
   {name:'Jan Aushadhi Pharmacy',   cat:'Medical',      icon:'💊', phone:'+919876543220', address:'Hospital Road',           hours:'24 Hours', distKm:1.8, lat:23.7965, lng:86.4340, rating:4.5},
   {name:'Hotel Sunshine',          cat:'Hotel',        icon:'🏨', phone:'+919876543233', address:'Station Road',            hours:'24 Hours', distKm:1.2, lat:23.7938, lng:86.4298, rating:3.9},
   {name:'Delhi Public School',     cat:'School',       icon:'🏫', phone:'+919876543234', address:'Education Colony',        hours:'7AM–2PM',  distKm:1.5, lat:23.7922, lng:86.4335, rating:4.2},
   {name:'HDFC ATM Machine',        cat:'ATM Machine',  icon:'🏧', phone:'+919876543235', address:'Market Road',             hours:'24 Hours', distKm:2.1, lat:23.7910, lng:86.4350, rating:3.7},
-  {name:'Indian Oil Petrol Pump',  cat:'Petrol Pump',  icon:'⛽', phone:'+919876543236', address:'NH-32 Highway',           hours:'24 Hours', distKm:2.3, lat:23.7905, lng:86.4280, rating:4.0},
+  {name:'Indian Oil Petrol Pump',  cat:'Petrol Pump/CNG',  icon:'⛽', phone:'+919876543236', address:'NH-32 Highway',           hours:'24 Hours', distKm:2.3, lat:23.7905, lng:86.4280, rating:4.0},
   {name:'Govt. Polytechnic College',cat:'College',     icon:'🎓', phone:'+919876543237', address:'College Road, Civil Lines',hours:'8AM–5PM',  distKm:1.7, lat:23.7915, lng:86.4360, rating:4.1},
   {name:'Sunrise Engineering College',cat:'College',   icon:'🎓', phone:'+919876543238', address:'NH-32, Bypass Road',      hours:'8AM–4PM',  distKm:2.6, lat:23.7890, lng:86.4240, rating:3.8},
 ];
@@ -1625,11 +1663,42 @@ let currentUser   = null;
 let confirmResult = null;
 let userLoc       = null;
 let pickedLoc     = null;
-let allShops      = [...SAMPLE_SHOPS];
+let allShops      = [];
+let roomListings  = [];
+let roomListingsUnsub = null;
+let activeRoomType = 'All';
+let activeRoomRent = 'all';
+let activeRoomAmenity = 'all';
+let activeRoomPriceMin = '';
+let activeRoomPriceMax = '';
+let propertyListings = [];
+let propertyListingsUnsub = null;
+let activePropertyType = 'All';
+let activePropertyPriceMin = '';
+let activePropertyPriceMax = '';
 
-const SCREENS = ['login','home','rooms','shops','list-shop','profile','explore','edit-profile','shop-detail','admin','tracking','payment'];
-const NAVMAP  = {home:'n-home',rooms:'n-rooms',explore:'n-shops','list-shop':'n-list',profile:'n-profile'};
-const AVIDS   = ['av-home','av-shops','av-rooms','av-list','av-profile','av-explore','av-admin'];
+const ROOM_PROPERTY_TYPES = ['1BHK','2BHK','3BHK','PG','Flat Share'];
+
+function normalizeRoomPropertyType(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw) return '';
+  if (raw === '1bhk' || raw === '1 bhk') return '1BHK';
+  if (raw === '2bhk' || raw === '2 bhk') return '2BHK';
+  if (raw === '3bhk' || raw === '3 bhk') return '3BHK';
+  if (raw === 'pg') return 'PG';
+  if (raw === 'flat share' || raw === 'flatshare') return 'Flat Share';
+  return value;
+}
+
+const SCREENS = ['login','home','rooms','properties','shops','list-shop','profile','explore','edit-profile','shop-detail','admin','tracking','payment'];
+const NAVMAP  = {home:'n-home',rooms:'n-rooms',properties:'n-properties',explore:'n-shops','list-shop':'n-list',profile:'n-profile'};
+const AVIDS   = ['av-home','av-shops','av-rooms','av-properties','av-list','av-profile','av-explore','av-admin'];
+
+function prettyPropertyType(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw) return '';
+  return raw.charAt(0).toUpperCase() + raw.slice(1);
+}
 
 // ================================================================
 //  AUTH
@@ -1646,6 +1715,8 @@ auth.onAuthStateChanged(user => {
     switchScreen('home');
     renderShopLists();
     loadFirestoreShops();
+    loadRoomListings();
+    loadPropertyListings();
     clearLocationCache();
     setTimeout(() => LocSystem.init(), 600);
   } else {
@@ -2255,21 +2326,538 @@ function sortByDistance(shops) {
   return getNearestShops(userLoc.lat, userLoc.lng, shops);
 }
 
+function buildHomeShell() {
+  const home = document.getElementById('home');
+  if (!home || document.getElementById('home-stack-shell')) return;
+  home.querySelectorAll(':scope > .section').forEach(section => section.remove());
+  const heroStats = document.getElementById('hero-stats');
+  if (heroStats) heroStats.style.display = 'none';
+  const heroTime = document.getElementById('hero-time-label');
+  if (heroTime) heroTime.textContent = 'Live discovery';
+  const homeName = document.getElementById('home-name');
+  if (homeName && homeName.parentElement) {
+    homeName.parentElement.innerHTML = 'Find what&apos;s near you 👀';
+    homeName.parentElement.className = 'hero-headline';
+  }
+  const search = document.getElementById('search-inp');
+  if (search) search.placeholder = 'Search shops, services...';
+  const searchWrap = search?.closest('.search-wrap');
+  if (searchWrap) searchWrap.classList.add('premium-search');
+
+  const hero = home.querySelector('.home-hero');
+  if (hero && !document.getElementById('home-hero-meta-row')) {
+    hero.insertAdjacentHTML('beforeend', `
+      <div class="hero-meta-row" id="home-hero-meta-row">
+        <div class="hero-meta-pill"><span>📍</span><div><strong id="home-area-name">Detecting...</strong><small id="home-pincode">Live area + PIN</small></div></div>
+        <div class="hero-meta-pill"><span>⚡</span><div><strong id="home-live-count">0 places</strong><small>Updating in real time</small></div></div>
+      </div>
+    `);
+  }
+
+  hero?.insertAdjacentHTML('afterend', `
+    <div class="home-stack" id="home-stack-shell">
+      <div class="home-section-card">
+        <div class="sec-header">
+          <div class="section-header-stack">
+            <div class="sec-title">Categories</div>
+            <div class="section-subtitle">Swipe through high-intent nearby discovery</div>
+          </div>
+        </div>
+        <div class="cats-wrap">
+          <button class="cat-nav-btn" id="cats-btn-left" onclick="scrollCatsLeft()" disabled>&#8249;</button>
+          <div class="cats" id="cats-row"></div>
+          <button class="cat-nav-btn" id="cats-btn-right" onclick="scrollCatsRight()">&rsaquo;</button>
+        </div>
+      </div>
+      <div class="home-section-card">
+        <div class="sec-header">
+          <div class="section-header-stack">
+            <div class="sec-title">🔥 Trending</div>
+            <div class="section-subtitle">Boosted, highly rated, and most trusted nearby</div>
+          </div>
+          <div class="see-all" onclick="switchScreen('explore')">Explore</div>
+        </div>
+        <div class="home-horizontal-list" id="home-trending-list"></div>
+      </div>
+      <div class="home-section-card">
+        <div class="sec-header">
+          <div class="section-header-stack">
+            <div class="sec-title">📍 Nearest to you</div>
+            <div class="section-subtitle">Live sorted from your current watch position</div>
+          </div>
+          <div class="see-all" onclick="switchScreen('shops')">See all</div>
+        </div>
+        <div class="nearest-grid" id="home-nearest-list"></div>
+      </div>
+    </div>
+  `);
+}
+
+function renderHomeCategories() {
+  const row = document.getElementById('cats-row');
+  if (!row) return;
+  row.innerHTML = HOME_CATEGORY_CONFIG.map((item, index) => `
+    <div class="cat-chip ${index === 0 ? 'active' : ''}" onclick="selectHomeCategoryCard(this,'${item.category.replace(/'/g, "\\'")}')">
+      <div class="cat-icon">${catIcon(item.category)}</div>
+      <div class="cat-label">${item.label}</div>
+    </div>
+  `).join('');
+  updateCatNavBtns();
+}
+
+function selectHomeCategoryCard(el, category) {
+  document.querySelectorAll('#cats-row .cat-chip').forEach(chip => chip.classList.remove('active'));
+  if (el) el.classList.add('active');
+  activeBusinessFilter = category;
+  activeCngOnlyFilter = false;
+  renderShopLists();
+}
+
+function listingScore(item) {
+  const rating = Number(item.rating || item.avgRating || 0);
+  const trust = Number(item.trustScore || 60);
+  const boost = Number(item.boostScore || 0);
+  const featured = item.isFeatured ? 12 : 0;
+  return (rating * 18) + trust + boost + featured;
+}
+
+function renderHomeDiscovery() {
+  buildHomeShell();
+  renderHomeCategories();
+  const areaName = document.getElementById('home-area-name');
+  const pincode = document.getElementById('home-pincode');
+  const liveCount = document.getElementById('home-live-count');
+  const display = LIVE_LOCATION_STATE?.display || {};
+  if (areaName) areaName.textContent = display.area || display.city || 'Detecting...';
+  if (pincode) pincode.textContent = display.pincode ? `PIN ${display.pincode}` : 'Live area + PIN';
+
+  const publicListings = sortByDistance(allShops.filter(s => !isRoomCategory(s.cat || s.category)));
+  if (liveCount) liveCount.textContent = `${publicListings.length} places`;
+
+  const trending = [...publicListings].sort((a, b) => listingScore(b) - listingScore(a)).slice(0, 6);
+  const nearest = publicListings.slice(0, 6);
+
+  const trendingEl = document.getElementById('home-trending-list');
+  const nearestEl = document.getElementById('home-nearest-list');
+
+  if (trendingEl) {
+    trendingEl.innerHTML = trending.length ? trending.map(item => `
+      <div class="trending-card" onclick="openShopDetail(${JSON.stringify(item).replace(/"/g,'&quot;')})">
+        <div class="card-media">${item.photos?.[0] ? `<img src="${item.photos[0]}" alt="${item.name}"/>` : catIcon(item.cat || item.category)}</div>
+        <div class="card-chip-row">
+          <span class="mini-pill hot">Trending</span>
+          ${item.isFeatured ? '<span class="mini-pill dark">Featured</span>' : ''}
+          ${item.isVerified ? '<span class="mini-pill cool">Verified</span>' : ''}
+        </div>
+        <div class="card-title-row">
+          <div>
+            <div class="card-title">${item.name}</div>
+            <div class="card-title-sub">${item.cat}</div>
+          </div>
+          <div class="trust-pill">${Math.max(0, Math.round(item.trustScore || 0))}/100</div>
+        </div>
+        <div class="card-stats-row">
+          <div>
+            <div class="card-metric">${item.distLabel || (item.distKm ? `${item.distKm} km` : 'Nearby')}</div>
+            <div class="card-metric-sub">distance</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="card-metric">${Number(item.avgRating || item.rating || 0).toFixed(1)}</div>
+            <div class="card-metric-sub">rating</div>
+          </div>
+        </div>
+      </div>
+    `).join('') : `<div class="empty-rich" style="min-width:100%;"><div style="font-size:34px;">👀</div><div class="empty-rich-title">Nothing here yet 👀</div><div class="empty-rich-sub">Fresh boosted or highly rated businesses will appear here as soon as they go live.</div><button class="ghost-btn" onclick="switchScreen('list-shop')">Add your business</button></div>`;
+  }
+
+  if (nearestEl) {
+    nearestEl.innerHTML = nearest.length ? nearest.map(item => `
+      <div class="nearest-card" onclick="openShopDetail(${JSON.stringify(item).replace(/"/g,'&quot;')})">
+        <div class="nearest-card-head">
+          <div class="nearest-icon">${catIcon(item.cat || item.category)}</div>
+          <div class="nearest-card-main">
+            <div class="nearest-topline">
+              <div class="card-title">${item.name}</div>
+              ${item.isVerified ? '<div class="verified-pill">Verified</div>' : `<div class="trust-pill">${Math.round(item.trustScore || 0)}/100</div>`}
+            </div>
+            <div class="card-title-sub">${item.cat} · ${item.address || 'Address pending'}</div>
+            <div class="card-chip-row" style="margin-top:10px;">
+              <span class="mini-pill cool">${item.distLabel || (item.distKm ? `${item.distKm} km away` : 'Nearby')}</span>
+              ${item.fuelType === 'petrol+cng' ? '<span class="mini-pill hot">CNG</span>' : ''}
+              ${item.price ? `<span class="mini-pill dark">₹${Number(item.price).toLocaleString('en-IN')}</span>` : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join('') : `<div class="empty-rich" style="grid-column:1/-1;"><div style="font-size:34px;">📍</div><div class="empty-rich-title">Nothing here yet 👀</div><div class="empty-rich-sub">Turn on live location or add the first nearby listing to start the feed.</div><button class="ghost-btn" onclick="switchScreen('list-shop')">Add your business</button></div>`;
+  }
+}
+
 // ================================================================
 //  RENDER SHOP LISTS (nearest first)
 // ================================================================
-function renderShopLists() {
-  const sorted = sortByDistance(allShops);
-  renderToContainer('shops-list', sorted);
-  // Refresh current home category
-  const activeChip = document.querySelector('.cats .cat-chip.active');
-  if (activeChip && currentHomeCat && currentHomeCat !== 'Room') {
-    selectHomeCat(activeChip, currentHomeCat);
+function isRoomCategory(cat = '') {
+  const value = String(cat).toLowerCase();
+  return value.includes('room') || value.includes('pg');
+}
+
+function getRoomListings() {
+  return sortByDistance(roomListings.length ? roomListings : allShops.filter(s => isRoomCategory(s.cat || s.category)));
+}
+
+function applyRoomFiltersToQuery(ref) {
+  let query = ref.where('active', '==', true);
+  if (activeRoomType !== 'All') query = query.where('propertyType', '==', normalizeRoomPropertyType(activeRoomType));
+  if (activeRoomAmenity !== 'all') query = query.where('amenities', 'array-contains', activeRoomAmenity);
+  const minPrice = activeRoomPriceMin !== '' ? Number(activeRoomPriceMin) : null;
+  const maxPrice = activeRoomPriceMax !== '' ? Number(activeRoomPriceMax) : null;
+  if (minPrice !== null && !Number.isNaN(minPrice)) query = query.where('price', '>=', minPrice);
+  if (maxPrice !== null && !Number.isNaN(maxPrice)) query = query.where('price', '<=', maxPrice);
+  else if (activeRoomRent === 'under_5000') query = query.where('price', '<=', 5000);
+  else if (activeRoomRent === '5000_10000') query = query.where('price', '>=', 5000).where('price', '<=', 10000);
+  else if (activeRoomRent === 'above_10000') query = query.where('price', '>=', 10000);
+  query = query.orderBy('price', 'asc');
+  return query.limit(50);
+}
+
+function loadRoomListings() {
+  try {
+    if (roomListingsUnsub) roomListingsUnsub();
+    roomListingsUnsub = applyRoomFiltersToQuery(db.collection('properties')).onSnapshot(snap => {
+      const next = [];
+      snap.forEach(doc => {
+        const s = doc.data();
+        const loc = s.location;
+        next.push({
+          id: doc.id,
+          name: s.name,
+          cat: s.category || 'Room / PG',
+          icon: catIcon('Room / PG'),
+          phone: s.phone,
+          address: s.address,
+          hours: s.hours,
+          lat: loc ? loc.latitude : s.lat || null,
+          lng: loc ? loc.longitude : s.lng || null,
+          distKm: 0,
+          ownerId: s.ownerId || '',
+          owner: s.owner || '',
+          ownerEmail: s.ownerEmail || '',
+          photos: s.photos || s.images || [],
+          info: s.info || '',
+          trustScore: s.trustScore || 100,
+          propertyType: normalizeRoomPropertyType(s.propertyType || ''),
+          price: s.price || null,
+          area: s.area || null,
+          amenities: s.amenities || []
+        });
+      });
+      roomListings = next;
+      renderRoomSections();
+      updateRoomCount();
+    }, err => console.log('Properties:', err.message));
+  } catch (e) {
+    console.log('Properties:', e.message);
   }
+}
+
+function renderRoomFilterBar() {
+  return `
+    <div id="room-filters-host">
+    <div style="padding:12px 16px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;" id="room-type-tabs">
+      ${['All', ...ROOM_PROPERTY_TYPES].map(type => `<div class="filter-pill ${activeRoomType === type ? 'active' : ''}" onclick="setRoomTypeFilter('${type.replace(/'/g, "\\'")}')">${type}</div>`).join('')}
+    </div>
+    <div style="display:flex;gap:8px;padding:12px 16px 0;flex-wrap:wrap;">
+      <select class="form-inp" style="max-width:170px;" onchange="setRoomRentFilter(this.value)">
+        <option value="all" ${activeRoomRent === 'all' ? 'selected' : ''}>All Rents</option>
+        <option value="under_5000" ${activeRoomRent === 'under_5000' ? 'selected' : ''}>Under ₹5,000</option>
+        <option value="5000_10000" ${activeRoomRent === '5000_10000' ? 'selected' : ''}>₹5,000 - ₹10,000</option>
+        <option value="above_10000" ${activeRoomRent === 'above_10000' ? 'selected' : ''}>Above ₹10,000</option>
+      </select>
+      <input class="form-inp" style="max-width:140px;" type="number" min="0" placeholder="Min price" value="${activeRoomPriceMin}" oninput="setRoomPriceFilter('min', this.value)"/>
+      <input class="form-inp" style="max-width:140px;" type="number" min="0" placeholder="Max price" value="${activeRoomPriceMax}" oninput="setRoomPriceFilter('max', this.value)"/>
+      <select class="form-inp" style="max-width:180px;" onchange="setRoomAmenityFilter(this.value)">
+        <option value="all">All Amenities</option>
+        ${ROOM_AMENITIES.map(item => `<option value="${item}" ${activeRoomAmenity === item ? 'selected' : ''}>${item}</option>`).join('')}
+      </select>
+    </div>
+    </div>`;
+}
+
+function setRoomTypeFilter(type) {
+  activeRoomType = type === 'All' ? 'All' : normalizeRoomPropertyType(type);
+  loadRoomListings();
+}
+
+function setRoomRentFilter(value) {
+  activeRoomRent = value;
+  if (value !== 'all') {
+    activeRoomPriceMin = '';
+    activeRoomPriceMax = '';
+  }
+  loadRoomListings();
+}
+
+function setRoomAmenityFilter(value) {
+  activeRoomAmenity = value;
+  loadRoomListings();
+}
+
+function setRoomPriceFilter(kind, value) {
+  if (kind === 'min') activeRoomPriceMin = value;
+  else activeRoomPriceMax = value;
+  if (value !== '') activeRoomRent = 'all';
+  loadRoomListings();
+}
+
+function getActiveRoomHeading() {
+  return activeRoomType === 'All' ? 'Rooms & PG Near You' : `${activeRoomType} Available Near You`;
+}
+
+function getActiveRoomHint() {
+  return activeRoomType === 'All' ? 'Showing all room sub-types' : `Showing only ${activeRoomType} listings`;
+}
+
+function getActiveRoomEmptyTitle() {
+  return activeRoomType === 'All' ? 'No Room/PG listed yet' : `No ${activeRoomType} available yet`;
+}
+
+function getActiveRoomEmptySubtext() {
+  return activeRoomType === 'All'
+    ? 'This category will show results only when an owner lists a room or PG.'
+    : `${activeRoomType} listings will appear here automatically when available.`;
+}
+
+function getActivePropertyHeading() {
+  return activePropertyType === 'All' ? 'Properties For Sale Near You' : `${prettyPropertyType(activePropertyType)} Properties Near You`;
+}
+
+function getActivePropertyHint() {
+  return activePropertyType === 'All' ? 'Showing all property types' : `Showing only ${prettyPropertyType(activePropertyType)} listings`;
+}
+
+function getActivePropertyEmptyTitle() {
+  return activePropertyType === 'All' ? 'No properties listed yet' : `No ${prettyPropertyType(activePropertyType)} properties available`;
+}
+
+function getActivePropertyEmptySubtext() {
+  return activePropertyType === 'All'
+    ? 'Property listings will appear here automatically when owners add them.'
+    : `${prettyPropertyType(activePropertyType)} listings will appear here automatically when available.`;
+}
+
+function getPropertyListings() {
+  return sortByDistance(propertyListings.length ? propertyListings : allShops.filter(s => (s.cat || s.category) === 'Property for Sale'));
+}
+
+function applyPropertyFiltersToQuery(ref) {
+  let query = ref.where('category', '==', 'Property for Sale').where('active', '==', true);
+  if (activePropertyType !== 'All') query = query.where('propertyType', '==', activePropertyType);
+  const minPrice = activePropertyPriceMin !== '' ? Number(activePropertyPriceMin) : null;
+  const maxPrice = activePropertyPriceMax !== '' ? Number(activePropertyPriceMax) : null;
+  if (minPrice !== null && !Number.isNaN(minPrice)) query = query.where('price', '>=', minPrice);
+  if (maxPrice !== null && !Number.isNaN(maxPrice)) query = query.where('price', '<=', maxPrice);
+  query = query.orderBy('price', 'asc');
+  return query.limit(50);
+}
+
+function loadPropertyListings() {
+  try {
+    if (propertyListingsUnsub) propertyListingsUnsub();
+    propertyListingsUnsub = applyPropertyFiltersToQuery(db.collection('businesses')).onSnapshot(snap => {
+      const next = [];
+      snap.forEach(doc => {
+        const s = doc.data();
+        const loc = s.location;
+        next.push({
+          id: doc.id,
+          name: s.name,
+          cat: s.category || 'Property for Sale',
+          icon: catIcon('Property for Sale'),
+          phone: s.phone,
+          address: s.address,
+          hours: s.hours,
+          lat: loc ? loc.latitude : s.lat || null,
+          lng: loc ? loc.longitude : s.lng || null,
+          distKm: 0,
+          ownerId: s.ownerId || '',
+          owner: s.owner || '',
+          ownerEmail: s.ownerEmail || '',
+          photos: s.photos || s.images || [],
+          info: s.info || '',
+          trustScore: s.trustScore || 100,
+          propertyType: s.propertyType || null,
+          price: s.price || null,
+          area: s.area || null
+        });
+      });
+      propertyListings = next;
+      renderPropertySections();
+    }, err => console.log('Properties section:', err.message));
+  } catch (e) {
+    console.log('Properties section:', e.message);
+  }
+}
+
+function renderPropertyFilterBar() {
+  return `
+    <div id="property-filters-wrap">
+    <div style="display:flex;gap:8px;overflow-x:auto;padding:12px 16px 0;scrollbar-width:none;" id="property-type-tabs">
+      ${['All', ...PROPERTY_TYPES].map(type => {
+        const key = type === 'All' ? 'All' : type;
+        const label = type === 'All' ? 'All' : prettyPropertyType(type);
+        return `<div class="filter-pill ${activePropertyType === key ? 'active' : ''}" onclick="setPropertyTypeFilter('${key}')">${label}</div>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;gap:8px;padding:12px 16px 0;flex-wrap:wrap;">
+      <input class="form-inp" style="max-width:160px;" type="number" min="0" placeholder="Min price" value="${activePropertyPriceMin}" oninput="setPropertyPriceFilter('min', this.value)"/>
+      <input class="form-inp" style="max-width:160px;" type="number" min="0" placeholder="Max price" value="${activePropertyPriceMax}" oninput="setPropertyPriceFilter('max', this.value)"/>
+    </div>
+    </div>`;
+}
+
+function setPropertyTypeFilter(type) {
+  activePropertyType = type;
+  loadPropertyListings();
+}
+
+function setPropertyPriceFilter(kind, value) {
+  if (kind === 'min') activePropertyPriceMin = value;
+  else activePropertyPriceMax = value;
+  loadPropertyListings();
+}
+
+function renderPropertySections() {
+  const list = document.getElementById('properties-list');
+  const empty = document.getElementById('properties-empty');
+  const filters = document.getElementById('property-filters-host');
+  const title = document.getElementById('property-title');
+  const hint = document.getElementById('property-hint');
+  const emptyTitle = document.getElementById('properties-empty-title');
+  const emptySub = document.getElementById('properties-empty-sub');
+  const filterWrap = document.getElementById('property-filters-wrap');
+  if (filters) filters.innerHTML = renderPropertyFilterBar();
+  if (filterWrap) filterWrap.outerHTML = renderPropertyFilterBar();
+  if (title) title.textContent = getActivePropertyHeading();
+  if (hint) hint.textContent = getActivePropertyHint();
+  if (emptyTitle) emptyTitle.textContent = getActivePropertyEmptyTitle();
+  if (emptySub) emptySub.textContent = getActivePropertyEmptySubtext();
+
+  const properties = getPropertyListings();
+  if (properties.length) {
+    renderToContainer('properties-list', properties);
+    if (empty) empty.style.display = 'none';
+  } else {
+    if (list) list.innerHTML = '';
+    if (empty) empty.style.display = '';
+  }
+}
+
+function renderRoomSections() {
+  const rooms = getRoomListings();
+  const homeRoomsWrap = document.getElementById('home-rooms-wrap');
+  const homeRoomsList = document.getElementById('home-rooms-list');
+  const homeRoomsEmpty = document.getElementById('home-rooms-empty');
+  const legacyRoomFilters = document.querySelector('#rooms > div[style*="overflow-x:auto"]');
+  const roomsScreen = document.querySelector('#rooms .rooms-grid') || document.getElementById('rooms-list')?.parentElement;
+  const roomsList = document.getElementById('rooms-list');
+  const roomsEmpty = document.getElementById('rooms-empty');
+
+  if (legacyRoomFilters) legacyRoomFilters.remove();
+
+  if (homeRoomsWrap && !homeRoomsList) {
+    homeRoomsWrap.innerHTML = `
+      <div class="shop-list" id="home-rooms-list"></div>
+      <div id="home-rooms-empty" style="display:none;text-align:center;padding:30px 20px;color:var(--muted);">
+        <div style="font-size:40px;margin-bottom:10px;">🏠</div>
+        <div style="font-size:15px;font-weight:500;margin-bottom:6px;">No Room/PG listed yet</div>
+        <div style="font-size:12px;margin-bottom:14px;">Room and PG listings will appear here only after an owner lists them.</div>
+        <button onclick="switchScreen('list-shop')" style="background:var(--orange);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;cursor:pointer;font-family:'Noto Sans',sans-serif;font-weight:600;">+ List Room / PG</button>
+      </div>`;
+  }
+
+  if (roomsScreen && !roomsList) {
+    roomsScreen.outerHTML = `
+      <div class="section" style="padding-bottom:20px;">
+        ${renderRoomFilterBar()}
+        <div class="sec-header">
+          <div class="sec-title">${getActiveRoomHeading()}</div>
+          <div style="font-size:12px;color:var(--muted);">${getActiveRoomHint()}</div>
+        </div>
+        <div class="shop-list" id="rooms-list"></div>
+        <div id="rooms-empty" style="display:none;text-align:center;padding:30px 20px;color:var(--muted);">
+          <div style="font-size:40px;margin-bottom:10px;">🏠</div>
+          <div style="font-size:15px;font-weight:500;margin-bottom:6px;">${getActiveRoomEmptyTitle()}</div>
+          <div style="font-size:12px;margin-bottom:14px;">${getActiveRoomEmptySubtext()}</div>
+          <button onclick="switchScreen('list-shop')" style="background:var(--orange);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;cursor:pointer;font-family:'Noto Sans',sans-serif;font-weight:600;">+ List Room / PG</button>
+        </div>
+      </div>`;
+  }
+
+  const currentHomeRoomsList = document.getElementById('home-rooms-list');
+  const currentHomeRoomsEmpty = document.getElementById('home-rooms-empty');
+  const currentRoomsList = document.getElementById('rooms-list');
+  const currentRoomsEmpty = document.getElementById('rooms-empty');
+  const roomFiltersHost = document.getElementById('room-filters-host');
+  const roomTitle = document.querySelector('#rooms .sec-title');
+  const roomHint = document.querySelector('#rooms .sec-header div[style*="font-size:12px"]');
+
+  if (roomFiltersHost) roomFiltersHost.outerHTML = renderRoomFilterBar();
+  if (roomTitle) roomTitle.textContent = getActiveRoomHeading();
+  if (roomHint) roomHint.textContent = getActiveRoomHint();
+
+  if (currentHomeRoomsList) currentHomeRoomsList.innerHTML = '';
+  if (currentRoomsList) currentRoomsList.innerHTML = '';
+
+  if (rooms.length) {
+    renderToContainer('home-rooms-list', rooms.slice(0, 5));
+    renderToContainer('rooms-list', rooms);
+    if (currentHomeRoomsEmpty) currentHomeRoomsEmpty.style.display = 'none';
+    if (currentRoomsEmpty) currentRoomsEmpty.style.display = 'none';
+  } else {
+    const emptyTitle = currentRoomsEmpty?.querySelector('div[style*="font-size:15px"]');
+    const emptySub = currentRoomsEmpty?.querySelector('div[style*="font-size:12px"]');
+    if (emptyTitle) emptyTitle.textContent = getActiveRoomEmptyTitle();
+    if (emptySub) emptySub.textContent = getActiveRoomEmptySubtext();
+    if (currentHomeRoomsEmpty) currentHomeRoomsEmpty.style.display = '';
+    if (currentRoomsEmpty) currentRoomsEmpty.style.display = '';
+  }
+}
+
+function renderShopLists() {
+  const sorted = getFilteredBusinesses();
+  renderToContainer('shops-list', sorted);
+  renderRoomSections();
+  renderPropertySections();
+  renderHomeDiscovery();
   // Update live stats
   const statShops = document.getElementById('stat-shops');
-  if (statShops) statShops.textContent = sorted.length + '+';
+  if (statShops) statShops.textContent = String(sorted.length);
   updateRoomCount();
+}
+
+function getFilteredBusinesses() {
+  let filtered = allShops.filter(s => !isRoomCategory(s.cat || s.category));
+  if (activeBusinessFilter && activeBusinessFilter !== 'All') {
+    filtered = filtered.filter(s => (s.cat || s.category || '').toLowerCase().includes(activeBusinessFilter.toLowerCase()));
+  }
+  if (activeCngOnlyFilter) {
+    filtered = filtered.filter(s => (s.cat || '').includes('Petrol Pump/CNG') && s.fuelType === 'petrol+cng');
+  }
+  if (userLoc && Number.isFinite(activeDistanceFilterKm)) {
+    filtered = sortByDistance(filtered).filter(s => Number(s.distKm || 0) <= activeDistanceFilterKm);
+  } else {
+    filtered = sortByDistance(filtered);
+  }
+  if (activePropertyPriceFilter !== 'all') {
+    filtered = filtered.filter(s => {
+      if (!(s.cat || '').includes('Property for Sale') || !s.price) return true;
+      if (activePropertyPriceFilter === 'budget') return Number(s.price) <= 2500000;
+      if (activePropertyPriceFilter === 'mid') return Number(s.price) > 2500000 && Number(s.price) <= 7500000;
+      if (activePropertyPriceFilter === 'premium') return Number(s.price) > 7500000;
+      return true;
+    });
+  }
+  return filtered;
 }
 
 function renderToContainer(containerId, shops) {
@@ -2278,15 +2866,19 @@ function renderToContainer(containerId, shops) {
   const sorted = userLoc ? sortByDistance(shops) : shops;
   container.innerHTML = sorted.map((s, i) => {
     const isSaved = FavSystem.isSaved(s.name);
-    const stars   = _renderStars(s.rating);
-    const distStr = s.distLabel || (s.distKm + ' km');
+    const stars   = _renderStars(s.avgRating || s.rating);
+    const distStr = s.distLabel || (Number.isFinite(s.distKm) ? (s.distKm < 1 ? `${Math.round(s.distKm * 1000)} m` : `${s.distKm} km`) : 'Nearby');
+    const extraInfo = businessExtraInfo(s);
+    const badges = businessBadges(s);
     return `
     <div class="shop-card" data-cat="${s.cat}" onclick="openModal(${JSON.stringify(s).replace(/"/g,'&quot;')})">
       <div class="shop-icon-wrap">${s.icon}</div>
       <div class="shop-info">
         <div class="shop-name">${s.name}${i === 0 ? '<span class="nearest-badge">Nearest</span>' : ''}</div>
         <div class="shop-cat">${s.cat}</div>
+        ${badges.length ? `<div class="shop-stars">${badges.map(b => `<span style="background:var(--orange-light);color:var(--orange);padding:2px 6px;border-radius:999px;margin-right:4px;display:inline-block;">${b}</span>`).join('')}</div>` : ''}
         ${stars ? `<div class="shop-stars">${stars} <span>(${s.rating})</span></div>` : ''}
+        ${extraInfo ? `<div class="shop-cat">${extraInfo}</div>` : ''}
         <div class="shop-open">● ${s.hours}</div>
       </div>
       <div class="shop-right">
@@ -2316,15 +2908,15 @@ function _renderStars(rating) {
 const KEYWORDS = {
   // Hindi keywords
   'kirana':'Grocery','ration':'Grocery','dukan':'Grocery',
-  'sabzi':'Vegetables','sabji':'Vegetables','tarkari':'Vegetables',
-  'fal':'Fruit','fala':'Fruit',
+  'sabzi':'Vegetable','sabji':'Vegetable','tarkari':'Vegetable',
+  'fal':'Fruit Shop','fala':'Fruit Shop',
   'khana':'Restaurant','dhaba':'Restaurant','restaurant':'Restaurant',
   'tiffin':'Restaurant','dabba':'Restaurant',
   'gym':'Gym','fitness':'Gym','exercise':'Gym','vyayam':'Gym',
   'gas':'Gas','cylinder':'Gas','lpg':'Gas','indane':'Gas',
   'furniture':'Furniture','chair':'Furniture','kursi':'Furniture','mez':'Furniture','palang':'Furniture',
-  'kitab':'Books','book':'Books','pustak':'Books',
-  'bijli':'Electric','electrical':'Electric','hardware':'Electric',
+  'kitab':'Book & Stationery Store','book':'Book & Stationery Store','pustak':'Book & Stationery Store','stationery':'Book & Stationery Store',
+  'bijli':'Electronics Repair','electrical':'Electronics Repair','hardware':'Electronics Repair',
   'dawai':'Medical','dawa':'Medical','medical':'Medical','hospital':'Medical','pharmacy':'Medical',
   'cake':'Cake','bakery':'Cake','meetha':'Cake','sweet':'Cake',
   'car wash':'Car Wash','bike wash':'Car Wash','gaadi':'Car Wash','wash':'Car Wash',
@@ -2332,10 +2924,15 @@ const KEYWORDS = {
   'room':'Room','pg':'Room','flat':'Room','rent':'Room','makaan':'Room',
   'kamra':'Room','bachelor':'Room','hostel':'Room',
   // English keywords
-  'grocery':'Grocery','vegetable':'Vegetables','fruit':'Fruit',
-  'electric':'Electric','medicine':'Medical','repair':'Repair',
+  'grocery':'Grocery','vegetable':'Vegetable','fruit':'Fruit Shop',
+  'electric':'Electronics Repair','electronics repair':'Electronics Repair','electric repair':'Electronics Repair','medicine':'Medical','repair':'Repair',
+  'mall':'Shopping Mall','shopping mall':'Shopping Mall','jewellery':'Jewellery Shop','jewelry':'Jewellery Shop','gold':'Jewellery Shop',
+  'cinema':'Cinema Hall / Multiplex','movie':'Cinema Hall / Multiplex','multiplex':'Cinema Hall / Multiplex',
+  'garage':'Garage / Car Repair','car repair':'Garage / Car Repair','mechanic':'Garage / Car Repair',
+  'ev':'EV Charging Station','ev charging':'EV Charging Station','charging station':'EV Charging Station',
+  'property':'Property for Sale','sale property':'Property for Sale','house sale':'Property for Sale','apartment sale':'Property for Sale',
   'hotel':'Hotel','lodge':'Hotel','stay':'Hotel','inn':'Hotel',
-  'petrol':'Petrol Pump','pump':'Petrol Pump','fuel':'Petrol Pump','diesel':'Petrol Pump','petrol pump':'Petrol Pump',
+  'petrol':'Petrol Pump/CNG','pump':'Petrol Pump/CNG','fuel':'Petrol Pump/CNG','diesel':'Petrol Pump/CNG','petrol pump':'Petrol Pump/CNG','cng':'Petrol Pump/CNG',
   'atm':'ATM Machine','cash':'ATM Machine','withdraw':'ATM Machine','atm machine':'ATM Machine',
   'bank':'Bank','sbi':'Bank','hdfc':'Bank','icici':'Bank','pnb':'Bank','axis':'Bank',
   'school':'School','college':'College','coaching':'School','vidyalaya':'School','padhai':'School',
@@ -2344,12 +2941,12 @@ const KEYWORDS = {
   'engineering college':'College','medical college':'College','law college':'College',
   'swiggy':'Swiggy','zomato':'Zomato','dominos':'Dominos','domino':'Dominos','pizza':'Dominos',
   'delivery':'Swiggy','order food':'Swiggy','food delivery':'Swiggy',
-  'mobile':'Mobile Shop','phone shop':'Mobile Shop','smartphone':'Mobile Shop','mobile store':'Mobile Shop',
-  'iphone':'Mobile Shop','samsung':'Mobile Shop','oppo':'Mobile Shop','vivo':'Mobile Shop',
-  'realme':'Mobile Shop','oneplus':'Mobile Shop','xiaomi':'Mobile Shop','redmi':'Mobile Shop',
-  'apple store':'Mobile Shop','apple':'Mobile Shop','mobile shop':'Mobile Shop',
-  'exclusive':'Exclusive Store','brand store':'Exclusive Store','showroom':'Exclusive Store',
-  'exclusive store':'Exclusive Store','company store':'Exclusive Store','official store':'Exclusive Store',
+  'mobile':'Mobile','phone shop':'Mobile','smartphone':'Mobile','mobile store':'Mobile',
+  'iphone':'Mobile Brand Store','samsung':'Mobile Brand Store','oppo':'Mobile Brand Store','vivo':'Mobile Brand Store',
+  'realme':'Mobile Brand Store','oneplus':'Mobile Brand Store','xiaomi':'Mobile Brand Store','redmi':'Mobile Brand Store',
+  'apple store':'Mobile Brand Store','apple':'Mobile Brand Store','mobile shop':'Mobile',
+  'exclusive':'Mobile Brand Store','brand store':'Mobile Brand Store','showroom':'Mobile Brand Store',
+  'exclusive store':'Mobile Brand Store','company store':'Mobile Brand Store','official store':'Mobile Brand Store',
 };
 
 let searchTimer = null;
@@ -2548,8 +3145,8 @@ async function createUserMarkerWithAddress(lat, lng, map) {
   // Show coordinates immediately while address loads
   marker.bindPopup('<b>📍 You are here</b><br><small>Getting address...</small>').openPopup();
   try {
-    const label = await getPlaceFromCoords(lat, lng);
-    marker.setPopupContent(`<b>📍 You are here</b><br><small style="color:#555;">${label}</small>`);
+    const place = await getPlaceFromCoords(lat, lng);
+    marker.setPopupContent(`<b>📍 You are here</b><br><small style="color:#555;">${place.label}</small>`);
   } catch {
     marker.setPopupContent(`<b>📍 You are here</b><br><small style="color:#555;">${lat.toFixed(4)}, ${lng.toFixed(4)}</small>`);
   }
@@ -2576,20 +3173,17 @@ function initMainMap() {
 }
 
 function reqLocation() {
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(pos => {
-    userLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+  if (userLoc?.lat && userLoc?.lng) {
     if (osmMap) {
       osmMap.setView([userLoc.lat, userLoc.lng], 15);
       if (userMarker) userMarker.remove();
-      userMarker = L.marker([userLoc.lat, userLoc.lng], { icon: userIcon() })
-        .addTo(osmMap)
-        .bindPopup('<b>📍 You are here</b>');
+      createUserMarkerWithAddress(userLoc.lat, userLoc.lng, osmMap).then(m => { userMarker = m; });
       document.getElementById('sort-label').textContent = '📍 Sorted by your live location';
     }
-    renderShopLists();
     updateLocDisplay(userLoc.lat, userLoc.lng);
-  }, () => {});
+    return;
+  }
+  if (typeof LocSystem !== 'undefined') LocSystem._startWatch();
 }
 
 function centerMe() {
@@ -2666,13 +3260,13 @@ function initMiniMap(lat, lng) {
       if (statusEl) statusEl.textContent = '✅ Location updated! (' + pos.lat.toFixed(5) + ', ' + pos.lng.toFixed(5) + ')';
       // Reverse geocode new position
       getPlaceFromCoords(pos.lat, pos.lng)
-        .then(lbl => { if (statusEl) statusEl.textContent = '✅ Pinned at: ' + lbl; })
+        .then(place => { if (statusEl) statusEl.textContent = '✅ Pinned at: ' + place.label; })
         .catch(() => {});
     });
 
     // Show address of current pin
     getPlaceFromCoords(lat, lng)
-      .then(lbl => { if (statusEl && statusEl.textContent.startsWith('✅')) statusEl.textContent = '✅ Pinned at: ' + lbl; })
+      .then(place => { if (statusEl && statusEl.textContent.startsWith('✅')) statusEl.textContent = '✅ Pinned at: ' + place.label; })
       .catch(() => {});
 
     // Multiple invalidateSize calls to fix grey tiles
@@ -2706,7 +3300,7 @@ function showModalMap(shopLat, shopLng, shopName, shopIcon) {
       // Show actual address in user marker popup
       const _modalUserMarker = L.marker([userLoc.lat, userLoc.lng], { icon: userIcon() }).addTo(mMap);
       getPlaceFromCoords(userLoc.lat, userLoc.lng)
-        .then(lbl => _modalUserMarker.bindPopup(`<b>📍 You are here</b><br><small>${lbl}</small>`))
+        .then(place => _modalUserMarker.bindPopup(`<b>📍 You are here</b><br><small>${place.label}</small>`))
         .catch(()  => _modalUserMarker.bindPopup('📍 You are here'));
 
       // Draw straight line (road route needs paid API — this shows direction)
@@ -2791,6 +3385,11 @@ function denyLocation() {
 //  EXPLORE CATEGORY
 // ================================================================
 function exploreCategory(cat) {
+  if (cat === 'Property for Sale') {
+    switchScreen('properties');
+    loadPropertyListings();
+    return;
+  }
   const resultsDiv = document.getElementById('explore-results');
   const listDiv    = document.getElementById('explore-list');
   const titleDiv   = document.getElementById('explore-title');
@@ -2946,6 +3545,15 @@ function selectHomeCat(el, cat) {
     seeAllEl.onclick        = () => switchScreen('rooms');
     if (roomsWrap) roomsWrap.style.display = '';
     if (shopsWrap) shopsWrap.style.display = 'none';
+    renderRoomSections();
+    return;
+  }
+
+  if (cat === 'Property for Sale' || cat === 'Properties') {
+    if (roomsWrap) roomsWrap.style.display = 'none';
+    if (shopsWrap) shopsWrap.style.display = 'none';
+    switchScreen('properties');
+    loadPropertyListings();
     return;
   }
 
@@ -2994,6 +3602,11 @@ function selectHomeCat(el, cat) {
 //  CATEGORY NAVIGATION
 // ================================================================
 function goShop(cat) {
+  if (cat === 'Property for Sale' || cat === 'Properties') {
+    switchScreen('properties');
+    loadPropertyListings();
+    return;
+  }
   switchScreen('explore');
   setTimeout(() => exploreCategory(cat), 150);
 }
@@ -3002,6 +3615,9 @@ function goShop(cat) {
 function homeSeeAll() {
   if (!currentHomeCat || currentHomeCat === 'Room') {
     switchScreen('rooms');
+  } else if (currentHomeCat === 'Property for Sale') {
+    switchScreen('properties');
+    loadPropertyListings();
   } else {
     switchScreen('explore');
     setTimeout(() => exploreCategory(currentHomeCat), 160);
@@ -3069,6 +3685,7 @@ function switchScreen(id) {
   // Init category dropdown when list-shop opens
   if (id === 'list-shop') {
     setTimeout(() => initCatDrop(), 100);
+    setTimeout(() => renderDynamicFields(document.getElementById('f-cat')?.value || ''), 120);
     // Auto-detect location when form opens (if already granted)
     setTimeout(() => {
       if (userLoc && !pickedLoc) {
@@ -3197,52 +3814,408 @@ function prevPhotos(inp) {
   });
 }
 
+function filterBusinesses(list = allShops, filter = 'All') {
+  if (!filter || filter === 'All') return list;
+  if (filter === 'Petrol Pump/CNG (CNG)') {
+    return list.filter(s => (s.cat || s.category) === 'Petrol Pump/CNG' && s.fuelType === 'petrol+cng');
+  }
+  if (filter === 'Property') {
+    return list.filter(s => (s.cat || s.category) === 'Property for Sale');
+  }
+  return list.filter(s => ((s.cat || s.category || '').toLowerCase().includes(filter.toLowerCase())));
+}
+
+async function addBusiness(payload) {
+  const ref = await db.collection('businesses').add(payload);
+  return ref.id;
+}
+
+function getBusinesses() {
+  return db.collection('businesses').orderBy('createdAt', 'desc').limit(100);
+}
+
+const BUSINESS_GUARD = {
+  minDescriptionLength: 20,
+  minImages: 2,
+  maxDailyListings: 2,
+  maxWeeklyListings: 5,
+  maxAllowedDistanceKm: 35,
+  spamWords: ['free money','loan guarantee','bitcoin','crypto double','adult','sex','escort','xxx','earn fast','investment scam','telegram only','call girl'],
+};
+
+function getDeviceId() {
+  const key = 'nearby_device_id_v1';
+  let val = localStorage.getItem(key);
+  if (!val) {
+    val = 'dev_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem(key, val);
+  }
+  return val;
+}
+
+function normalizedText(val) {
+  return String(val || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function meaningfulBusinessName(name) {
+  const cleaned = String(name || '').trim();
+  if (cleaned.length < 4) return false;
+  const alphaCount = (cleaned.match(/[A-Za-z]/g) || []).length;
+  const uniqueAlpha = new Set((cleaned.toLowerCase().match(/[a-z]/g) || [])).size;
+  if (alphaCount < 3) return false;
+  if (/^[a-z]{1,3}\d{2,}$/i.test(cleaned)) return false;
+  if (/^(test|demo|fake|sample|abc|asdf|qwerty|shop123)$/i.test(cleaned)) return false;
+  return uniqueAlpha >= 3;
+}
+
+function containsSpamKeyword(text) {
+  const hay = normalizedText(text);
+  return BUSINESS_GUARD.spamWords.find(word => hay.includes(normalizedText(word))) || '';
+}
+
+function isValidBusinessPhone(phone) {
+  return /^\+?[1-9]\d{9,14}$/.test(String(phone || '').replace(/[\s\-()]/g, ''));
+}
+
+function countEmojiChars(text) {
+  const matches = String(text || '').match(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu);
+  return matches ? matches.length : 0;
+}
+
+function analyzeTextQuality(name, description) {
+  const combined = `${name || ''} ${description || ''}`.trim();
+  const words = normalizedText(combined).split(' ').filter(Boolean);
+  const freq = {};
+  let repeatedPenalty = 0;
+  words.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+  Object.values(freq).forEach(count => { if (count >= 4) repeatedPenalty += 10; });
+  const uppercaseRatio = combined ? ((combined.match(/[A-Z]/g) || []).length / Math.max((combined.match(/[A-Za-z]/g) || []).length, 1)) : 0;
+  const emojiCount = countEmojiChars(combined);
+  const signals = [];
+  let penalty = 0;
+  if (uppercaseRatio > 0.75 && combined.length > 8) { penalty += 20; signals.push('all_caps_title'); }
+  if (emojiCount > 4) { penalty += 15; signals.push('emoji_overuse'); }
+  if (repeatedPenalty > 0) { penalty += Math.min(20, repeatedPenalty); signals.push('repeated_words'); }
+  return { penalty, signals };
+}
+
+function normalizeBusinessName(name) {
+  return normalizedText(name).replace(/\b(shop|store|centre|center|mart|business|services|service|agency)\b/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function levenshtein(a, b) {
+  const s = a || '', t = b || '';
+  const dp = Array.from({ length: t.length + 1 }, (_, i) => [i]);
+  for (let j = 0; j <= s.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= t.length; i++) {
+    for (let j = 1; j <= s.length; j++) {
+      dp[i][j] = t[i - 1] === s[j - 1]
+        ? dp[i - 1][j - 1]
+        : Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]) + 1;
+    }
+  }
+  return dp[t.length][s.length];
+}
+
+function nameSimilarityScore(a, b) {
+  const x = normalizeBusinessName(a);
+  const y = normalizeBusinessName(b);
+  if (!x || !y) return 0;
+  if (x === y) return 1;
+  const dist = levenshtein(x, y);
+  return 1 - (dist / Math.max(x.length, y.length, 1));
+}
+
+async function inspectImageFile(file) {
+  const dataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+  const img = await new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = dataUrl;
+  });
+  const lowRes = img.width < 400 || img.height < 300;
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.min(32, img.width);
+  canvas.height = Math.min(32, img.height);
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  let total = 0, variance = 0;
+  const values = [];
+  for (let i = 0; i < pixels.length; i += 4) {
+    const lum = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
+    values.push(lum);
+    total += lum;
+  }
+  const avg = total / Math.max(values.length, 1);
+  values.forEach(v => { variance += Math.pow(v - avg, 2); });
+  variance = variance / Math.max(values.length, 1);
+  const isBlank = variance < 18;
+  let hash = `${file.name}_${file.size}_${img.width}x${img.height}`;
+  try {
+    const buf = await file.slice(0, 65536).arrayBuffer();
+    const digest = await crypto.subtle.digest('SHA-256', buf);
+    hash = Array.from(new Uint8Array(digest)).slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch(e) {}
+  return { width: img.width, height: img.height, lowRes, isBlank, hash };
+}
+
+async function analyzeListingImages(files) {
+  const results = [];
+  for (const file of Array.from(files || [])) {
+    try { results.push(await inspectImageFile(file)); }
+    catch(e) { results.push({ lowRes: true, isBlank: true, hash: `${file.name}_${file.size}` }); }
+  }
+  return {
+    results,
+    validCount: results.filter(r => !r.lowRes && !r.isBlank).length,
+    lowResCount: results.filter(r => r.lowRes).length,
+    blankCount: results.filter(r => r.isBlank).length,
+    hashes: results.map(r => r.hash).filter(Boolean)
+  };
+}
+
+async function getRecentListingsByOwner(ownerId, deviceId) {
+  const now = new Date();
+  const dayAgo = firebase.firestore.Timestamp.fromDate(new Date(now.getTime() - 24 * 60 * 60 * 1000));
+  const weekAgo = firebase.firestore.Timestamp.fromDate(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
+  const [ownerDay, ownerWeek, deviceWeek] = await Promise.all([
+    db.collection('businesses').where('ownerId', '==', ownerId).where('createdAt', '>=', dayAgo).get(),
+    db.collection('businesses').where('ownerId', '==', ownerId).where('createdAt', '>=', weekAgo).get(),
+    db.collection('businesses').where('deviceId', '==', deviceId).where('createdAt', '>=', weekAgo).get()
+  ]);
+  return {
+    ownerDayCount: ownerDay.size,
+    ownerWeekCount: ownerWeek.size,
+    deviceWeekCount: deviceWeek.size,
+    uniqueDeviceOwners: new Set(deviceWeek.docs.map(d => d.data().ownerId).filter(Boolean)).size
+  };
+}
+
+async function checkDuplicateBusinesses(name, pincode) {
+  if (!pincode) return { exactDuplicate: false, similarDuplicate: false, similarDoc: null };
+  const snap = await db.collection('businesses').where('pincode', '==', pincode).limit(25).get();
+  let exactDuplicate = false;
+  let similarDuplicate = false;
+  let similarDoc = null;
+  snap.forEach(doc => {
+    const data = doc.data();
+    const similarity = nameSimilarityScore(name, data.name || '');
+    if (normalizeBusinessName(name) === normalizeBusinessName(data.name || '')) exactDuplicate = true;
+    if (similarity >= 0.82) { similarDuplicate = true; similarDoc = { id: doc.id, ...data, similarity }; }
+  });
+  return { exactDuplicate, similarDuplicate, similarDoc };
+}
+
+async function checkImageReuse(hashes = []) {
+  for (const hash of hashes) {
+    const snap = await db.collection('businesses').where('imageHashes', 'array-contains', hash).limit(1).get();
+    if (!snap.empty) return true;
+  }
+  return false;
+}
+
+function buildTrustScore(payload) {
+  let score = 100;
+  if (payload.badTextQuality) score -= 20;
+  if (payload.badImages) score -= 25;
+  if (payload.locationMismatch) score -= 30;
+  if (payload.duplicateSimilarity) score -= 40;
+  if (payload.newUser) score -= 10;
+  if (payload.phoneVerified) score += 10;
+  if (payload.multipleRealImages) score += 10;
+  if (payload.reportsPenalty) score -= payload.reportsPenalty;
+  return Math.max(0, Math.min(100, score));
+}
+
+async function evaluateBusinessSubmission({ name, phone, description, files, pincode, pickedLoc, currentLoc, ownerId }) {
+  const issues = [];
+  if (!meaningfulBusinessName(name)) issues.push('Business name looks low quality or random.');
+  const spamWord = containsSpamKeyword(`${name} ${description}`);
+  if (spamWord) issues.push(`Spam keyword blocked: ${spamWord}`);
+  if ((description || '').trim().length < BUSINESS_GUARD.minDescriptionLength) issues.push('Description must be at least 20 characters.');
+  if (!isValidBusinessPhone(phone)) issues.push('Phone number format is invalid.');
+
+  const deviceId = getDeviceId();
+  const [imageInfo, recentStats, duplicateInfo] = await Promise.all([
+    analyzeListingImages(files),
+    getRecentListingsByOwner(ownerId, deviceId),
+    checkDuplicateBusinesses(name, pincode)
+  ]);
+
+  if (imageInfo.validCount < BUSINESS_GUARD.minImages) issues.push('At least 2 clear real images are required.');
+  if (imageInfo.blankCount) issues.push('Blank or suspicious images detected.');
+  if (imageInfo.lowResCount) issues.push('Very low resolution images detected.');
+  if (recentStats.ownerDayCount >= BUSINESS_GUARD.maxDailyListings) issues.push('Daily listing limit reached.');
+  if (recentStats.ownerWeekCount >= BUSINESS_GUARD.maxWeeklyListings) issues.push('Weekly listing limit reached.');
+  if (recentStats.deviceWeekCount >= 6 || recentStats.uniqueDeviceOwners >= 3) issues.push('This device is creating too many listings across accounts.');
+  if (duplicateInfo.exactDuplicate) issues.push('A similar listing already exists in this pincode.');
+
+  const imageReuse = imageInfo.hashes.length ? await checkImageReuse(imageInfo.hashes) : false;
+  if (imageReuse) issues.push('Same business images were already used in another listing.');
+
+  const textQuality = analyzeTextQuality(name, description);
+  const locationDistanceKm = (currentLoc && pickedLoc)
+    ? parseFloat(calcDist(currentLoc.lat, currentLoc.lng, pickedLoc.lat, pickedLoc.lng).toFixed(1))
+    : null;
+  const locationMismatch = locationDistanceKm !== null && locationDistanceKm > BUSINESS_GUARD.maxAllowedDistanceKm;
+  if (locationMismatch) issues.push(`Business location is ${locationDistanceKm} km away from your live location.`);
+
+  const trustScore = buildTrustScore({
+    badTextQuality: textQuality.penalty > 0 || !meaningfulBusinessName(name) || !!spamWord,
+    badImages: imageInfo.validCount < BUSINESS_GUARD.minImages || imageInfo.blankCount > 0 || imageInfo.lowResCount > 0 || imageReuse,
+    locationMismatch,
+    duplicateSimilarity: duplicateInfo.exactDuplicate || duplicateInfo.similarDuplicate,
+    newUser: recentStats.ownerWeekCount === 0,
+    phoneVerified: !!currentUser?.phoneNumber,
+    multipleRealImages: imageInfo.validCount >= 3,
+  });
+
+  const isBlocked = issues.some(msg =>
+    msg.includes('low quality or random') ||
+    msg.includes('Description must be at least 20 characters.') ||
+    msg.includes('Daily listing limit') ||
+    msg.includes('Weekly listing limit') ||
+    msg.includes('device is creating too many listings') ||
+    msg.includes('At least 2 clear real images') ||
+    msg.includes('Spam keyword blocked') ||
+    msg.includes('similar listing already exists') ||
+    msg.includes('Phone number format is invalid.')
+  );
+  const isHidden = trustScore < 50 || imageReuse;
+  const visibility = isHidden ? 'hidden' : trustScore < 70 ? 'limited' : 'normal';
+  return {
+    allowed: !isBlocked,
+    trustScore,
+    isHidden,
+    visibility,
+    issues,
+    deviceId,
+    imageInfo,
+    duplicateInfo,
+    textQuality,
+    locationDistanceKm,
+    verificationFlags: {
+      phoneVerified: !!currentUser?.phoneNumber,
+      deviceChecked: true,
+      duplicateChecked: true,
+      imageReuse,
+      locationMismatch,
+      qualitySignals: textQuality.signals
+    }
+  };
+}
+
 // ================================================================
 //  SUBMIT SHOP TO FIRESTORE
 // ================================================================
 async function submitShop() {
   if (!currentUser) { toast('Please login first', 'err'); return; }
   const name  = document.getElementById('f-name').value.trim();
-  const cat   = document.getElementById('f-cat').value;
+  const cat   = normalizeCategoryLabel(document.getElementById('f-cat').value);
   const owner = document.getElementById('f-owner').value.trim();
   const phone = document.getElementById('f-phone').value.trim();
   const addr  = document.getElementById('f-addr').value.trim();
   const info  = document.getElementById('f-info').value.trim();
   const openT = document.getElementById('f-open').value;
   const closeT= document.getElementById('f-close').value;
+  const fuelType = document.getElementById('f-fuel-type')?.value || '';
+  const propertyType = normalizeRoomPropertyType(document.getElementById('f-property-type')?.value || '');
+  const price = document.getElementById('f-price')?.value || '';
+  const area = document.getElementById('f-area')?.value.trim() || '';
+  const amenities = (document.getElementById('f-amenities')?.value || '').split(',').map(v => v.trim()).filter(Boolean);
+  const description = document.getElementById('f-description')?.value.trim() || '';
+  const vehicleType = document.getElementById('f-vehicle-type')?.value || '';
+  const listingText = (description || info || '').trim();
+  const files = document.getElementById('photo-inp').files;
   if (!name || !cat || !phone || !addr) { toast('Please fill all required fields', 'err'); return; }
+  if (cat === 'Petrol Pump/CNG' && !fuelType) { toast('Please select fuel type', 'err'); return; }
+  if (cat === 'Property for Sale' && (!propertyType || !price)) { toast('Please fill property type and price', 'err'); return; }
+  if (cat === 'Room / PG' && (!propertyType || !price)) { toast('Please fill room type and rent', 'err'); return; }
   if (!pickedLoc) { toast('Please pin your location on the map', 'err'); return; }
   const btn = document.getElementById('sub-btn');
   btn.disabled = true;
-  spin('Uploading your shop...');
+  spin('Checking listing quality...');
   try {
+    const placeMeta = await updateLocDisplay(pickedLoc.lat, pickedLoc.lng);
+    const review = await evaluateBusinessSubmission({
+      name,
+      phone,
+      description: listingText,
+      files,
+      pincode: placeMeta?.pincode || '',
+      pickedLoc,
+      currentLoc: userLoc,
+      ownerId: currentUser.uid
+    });
+    if (!review.allowed) {
+      hideSpin(); btn.disabled = false;
+      toast(review.issues[0] || 'Listing blocked by verification system', 'err');
+      return;
+    }
+    spin('Uploading your business...');
     let photoURLs = [];
-    const files = document.getElementById('photo-inp').files;
     for (const file of files) {
       try {
-        const ref  = storage.ref(`shops/${currentUser.uid}/${Date.now()}_${file.name}`);
+        const ref  = storage.ref(`businesses/${currentUser.uid}/${Date.now()}_${file.name}`);
         const snap = await ref.put(file);
         photoURLs.push(await snap.ref.getDownloadURL());
       } catch(e) { console.log('Photo upload skipped:', e.message); }
     }
     const newShop = {
-      name, category: cat, owner, phone, address: addr, info,
+      name, category: cat, owner, phone, address: addr, pincode: placeMeta?.pincode || '',
+      info: listingText,
       hours: openT && closeT ? `${openT} – ${closeT}` : 'Not specified',
       location: new firebase.firestore.GeoPoint(pickedLoc.lat, pickedLoc.lng),
       lat: pickedLoc.lat, lng: pickedLoc.lng,
+      images: photoURLs,
       photos: photoURLs,
       ownerId: currentUser.uid,
       ownerEmail: currentUser.email || '',
       ownerPhone: currentUser.phoneNumber || '',
+      fuelType: fuelType || null,
+      propertyType: propertyType || null,
+      price: price ? Number(price) : null,
+      area: area || null,
+      amenities,
+      vehicleType: vehicleType || null,
+      trustScore: review.trustScore,
+      isHidden: review.isHidden,
+      visibility: review.visibility,
+      reportsCount: 0,
+      deviceId: review.deviceId,
+      isVerified: !!currentUser.phoneNumber,
+      imageHashes: review.imageInfo.hashes,
+      verificationFlags: review.verificationFlags,
+      moderationNotes: review.issues,
+      locationMismatchKm: review.locationDistanceKm || null,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      active: true, verified: false
+      active: !review.isHidden, verified: !!currentUser.phoneNumber,
+      status: review.isHidden ? 'hidden' : review.visibility === 'limited' ? 'limited' : 'active'
     };
-    await db.collection('shops').add(newShop);
+    const businessId = await addBusiness(newShop);
+    if (cat === 'Room / PG') {
+      await db.collection('properties').doc(businessId).set({
+        ...newShop,
+        businessId,
+        propertyType,
+        amenities,
+        category: 'Room / PG',
+        active: !review.isHidden
+      }, { merge: true });
+    }
     // Add to local list and re-render sorted
-    allShops.unshift({ ...newShop, icon: catIcon(cat), cat, distKm: pickedLoc ? parseFloat(calcDist(userLoc?.lat||pickedLoc.lat, userLoc?.lng||pickedLoc.lng, pickedLoc.lat, pickedLoc.lng).toFixed(1)) : 0 });
+    if (!review.isHidden) allShops.unshift({ ...newShop, id: businessId, icon: catIcon(cat), cat, distKm: pickedLoc ? parseFloat(calcDist(userLoc?.lat||pickedLoc.lat, userLoc?.lng||pickedLoc.lng, pickedLoc.lat, pickedLoc.lng).toFixed(1)) : 0 });
     hideSpin(); btn.disabled = false;
-    toast('✅ Shop listed successfully!', 'ok');
+    toast(review.visibility === 'limited' ? 'Listing submitted with limited visibility for review.' : '✅ Business listed successfully!', review.visibility === 'limited' ? '' : 'ok');
     ['f-name','f-cat','f-owner','f-phone','f-addr','f-info'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    ['f-open','f-close','f-fuel-type','f-property-type','f-price','f-area','f-amenities','f-description','f-vehicle-type'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
     pickedLoc = null;
     document.getElementById('loc-status').textContent = '';
     document.getElementById('mini-map').style.display = 'none';
@@ -3265,28 +4238,42 @@ async function submitShop() {
 // ================================================================
 function loadFirestoreShops() {
   try {
-    db.collection('shops').where('active','==',true).limit(50)
-      .onSnapshot(snap => {
-        const firestoreShops = [];
-        snap.forEach(d => {
-          const s = d.data();
-          const loc = s.location;
-          firestoreShops.push({
-            id: d.id,
-            name: s.name, cat: s.category, icon: catIcon(s.category),
-            phone: s.phone, address: s.address, hours: s.hours,
-            lat: loc ? loc.latitude : null, lng: loc ? loc.longitude : null,
-            distKm: 0
-          });
+    getBusinesses().onSnapshot(snap => {
+      const firestoreShops = [];
+      snap.forEach(d => {
+        const s = d.data();
+        const loc = s.location;
+        if (s.isHidden || s.active === false || (s.reportsCount || 0) > 3) return;
+        firestoreShops.push({
+          id: d.id,
+          name: s.name, cat: s.category, icon: catIcon(s.category),
+          phone: s.phone, address: s.address, hours: s.hours,
+          lat: loc ? loc.latitude : null, lng: loc ? loc.longitude : null,
+          distKm: 0,
+          ownerId: s.ownerId || '',
+          owner: s.owner || '',
+          ownerEmail: s.ownerEmail || '',
+          photos: s.photos || s.images || [],
+          info: s.info || '',
+          trustScore: s.trustScore || 100,
+          reportsCount: s.reportsCount || 0,
+          visibility: s.visibility || 'normal',
+          fuelType: s.fuelType || null,
+          propertyType: s.propertyType || null,
+          price: s.price || null,
+          area: s.area || null,
+          amenities: s.amenities || []
         });
-        if (firestoreShops.length > 0) {
-          // Merge with sample data (avoid duplicates by name)
-          const sampleNames = SAMPLE_SHOPS.map(s => s.name);
-          const newShops = firestoreShops.filter(s => !sampleNames.includes(s.name));
-          allShops = [...SAMPLE_SHOPS, ...newShops];
-          renderShopLists();
-        }
       });
+      firestoreShops.sort((a, b) => {
+        const av = a.visibility === 'limited' ? 1 : 0;
+        const bv = b.visibility === 'limited' ? 1 : 0;
+        if (av !== bv) return av - bv;
+        return (b.trustScore || 0) - (a.trustScore || 0);
+      });
+      allShops = [...firestoreShops];
+      renderShopLists();
+    });
   } catch(e) { console.log('Firestore:', e.message); }
 }
 
@@ -3296,13 +4283,127 @@ function loadFirestoreShops() {
 const CAT_LIST = [
   '🛒 Grocery / General Store','🍽️ Restaurant / Dhaba','🏨 Hotel / Lodge / Guest House',
   '🏫 School / College / Coaching','🎓 College / University / Institute','🟠 Swiggy Partner Restaurant','🔴 Zomato Partner Restaurant',
-  '🍕 Domino\'s / Pizza Shop','⛽ Petrol Pump / Fuel Station','🏧 ATM Machine','🏦 Bank',
-  '💪 Gym / Fitness Center','🔥 LPG Gas Agency','🪑 Furniture Shop',
-  '📚 Book Store','📖 Second Hand Books','🔌 Electrical / Hardware',
-  '💊 Medical / Pharmacy','🎂 Cake Shop / Bakery','🚗 Car / Bike Wash',
-  '🍎 Fruit Seller','🥦 Vegetable Seller','🧺 Laundry',
-  '🍱 Tiffin / Food Delivery','🛠️ Repair Shop','📱 Mobile Shop','🏬 Exclusive Store','🏠 Room / PG Listing','🏪 Other'
+  '🍕 Domino\'s / Pizza Shop','⛽ Petrol Pump/CNG','🏧 ATM Machine','🏦 Bank',
+  '🏬 Shopping Mall','💍 Jewellery Shop','🎬 Cinema Hall / Multiplex','🚗 Garage / Car Repair','⚡ EV Charging Station','🏠 Property for Sale',
+  '💪 Gym','🔥 LPG Gas Agency','🪑 Furniture',
+  '📚 Book & Stationery Store','📖 Second Hand Books','🔌 Electronics Repair',
+  '💊 Medical','🎂 Cake / Bakery','🚗 Car Wash',
+  '🍎 Fruit Shop','🥦 Vegetable','🧺 Laundry',
+  '🍱 Tiffin / Food Delivery','🛠️ Repair Shop','📱 Mobile','🏬 Mobile Brand Store','🏠 Room / PG Listing','🏪 Other'
 ];
+
+const PROPERTY_TYPES = ['land','house','apartment','commercial'];
+const ROOM_AMENITIES = ['WiFi','AC','Attached Bath','Meals','Parking','Power Backup'];
+
+function normalizeCategoryLabel(val) {
+  if (!val) return '';
+  return val.replace(/^[^\w]+/u, '').trim()
+    .replace(/^Petrol Pump\/CNG$/i, 'Petrol Pump/CNG')
+    .replace(/\s*\/\s*Fuel Station/i, '')
+    .replace(/\s*\/\s*General Store/i, '')
+    .replace(/\s*\/\s*Dhaba/i, '')
+    .replace(/\s*\/\s*Lodge \/ Guest House/i, '')
+    .replace(/\s*\/\s*College \/ Coaching/i, '')
+    .replace(/\s*\/\s*University \/ Institute/i, '')
+    .replace(/\s*Partner Restaurant/i, '')
+    .replace(/\s*\/\s*Pizza Shop/i, '')
+    .replace(/\s*\/\s*Fitness Center/i, '')
+    .replace(/\s*\/\s*Hardware/i, '')
+    .replace(/\s*\/\s*Pharmacy/i, '')
+    .replace(/\s*\/\s*Bakery/i, '')
+    .replace(/\s*Seller/i, '')
+    .replace(/\s*\/\s*Food Delivery/i, '')
+    .replace(/\s*Listing/i, '')
+    .trim();
+}
+
+function businessExtraInfo(b) {
+  if (!b) return '';
+  if ((b.cat || b.category) === 'Petrol Pump/CNG' && b.fuelType === 'petrol+cng') return 'CNG Available';
+  if ((b.cat || b.category) === 'Property for Sale') {
+    const details = [];
+    if (b.propertyType) details.push(String(b.propertyType).replace(/^\w/, c => c.toUpperCase()));
+    if (b.price) details.push('₹' + Number(b.price).toLocaleString('en-IN'));
+    if (b.area) details.push(b.area);
+    return details.join(' • ') || 'For Sale';
+  }
+  if ((b.cat || b.category) === 'Room / PG') {
+    const details = [];
+    if (b.propertyType) details.push(b.propertyType);
+    if (b.price) details.push('â‚¹' + Number(b.price).toLocaleString('en-IN') + '/mo');
+    if (Array.isArray(b.amenities) && b.amenities.length) details.push(b.amenities.slice(0, 2).join(', '));
+    return details.join(' â€¢ ') || 'Room / PG';
+  }
+  if ((b.cat || b.category) === 'Garage / Car Repair' && b.vehicleType) return b.vehicleType;
+  return b.info || '';
+}
+
+function businessBadges(b) {
+  const badges = [];
+  if ((b.cat || b.category) === 'Petrol Pump/CNG' && b.fuelType === 'petrol+cng') badges.push('CNG Available');
+  if ((b.cat || b.category) === 'Property for Sale') badges.push('For Sale');
+  if ((b.cat || b.category) === 'Room / PG' && b.propertyType) badges.push(b.propertyType);
+  return badges;
+}
+
+function renderDynamicFields(cat) {
+  const wrap = document.getElementById('dynamic-fields');
+  if (!wrap) return;
+  const category = normalizeCategoryLabel(cat);
+  let html = '';
+  if (category === 'Petrol Pump/CNG') {
+    html = `
+      <div class="form-group">
+        <div class="form-label">Fuel Type *</div>
+        <select class="form-inp" id="f-fuel-type">
+          <option value="petrol">Petrol/Diesel Only</option>
+          <option value="petrol+cng">Petrol/Diesel + CNG</option>
+        </select>
+      </div>`;
+  } else if (category === 'Property for Sale') {
+    html = `
+      <div class="form-group">
+        <div class="form-label">Property Type *</div>
+        <select class="form-inp" id="f-property-type">
+          <option value="land">Land</option>
+          <option value="house">House</option>
+          <option value="apartment">Apartment</option>
+          <option value="commercial">Commercial</option>
+        </select>
+      </div>
+      <div class="form-group"><div class="form-label">Price *</div><input class="form-inp" id="f-price" type="number" min="0" placeholder="e.g. 4500000"/></div>
+      <div class="form-group"><div class="form-label">Area</div><input class="form-inp" id="f-area" placeholder="e.g. 1200 sq ft"/></div>
+      <div class="form-group"><div class="form-label">Description</div><textarea class="form-inp" id="f-description" rows="3" placeholder="Property details, facing, amenities, etc."></textarea></div>`;
+  } else if (category === 'Room / PG') {
+    html = `
+      <div class="form-group">
+        <div class="form-label">Property Type *</div>
+        <select class="form-inp" id="f-property-type">
+          ${ROOM_PROPERTY_TYPES.map(type => `<option value="${type}">${type}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><div class="form-label">Monthly Rent *</div><input class="form-inp" id="f-price" type="number" min="0" placeholder="e.g. 8500"/></div>
+      <div class="form-group"><div class="form-label">Area / Size</div><input class="form-inp" id="f-area" placeholder="e.g. 1 room, 450 sq ft"/></div>
+      <div class="form-group">
+        <div class="form-label">Amenities</div>
+        <input class="form-inp" id="f-amenities" placeholder="e.g. WiFi, AC, Parking"/>
+      </div>
+      <div class="form-group"><div class="form-label">Description</div><textarea class="form-inp" id="f-description" rows="3" placeholder="Rent details, furnishing, meals, restrictions, amenities..."></textarea></div>`;
+  } else if (category === 'Garage / Car Repair') {
+    html = `
+      <div class="form-group">
+        <div class="form-label">Vehicle Type</div>
+        <select class="form-inp" id="f-vehicle-type">
+          <option value="">All Vehicles</option>
+          <option value="Bike">Bike</option>
+          <option value="Car">Car</option>
+          <option value="Car & Bike">Car & Bike</option>
+          <option value="Commercial">Commercial</option>
+        </select>
+      </div>`;
+  }
+  wrap.innerHTML = html;
+}
 
 function initCatDrop() {
   renderCatOptions('');
@@ -3342,12 +4443,14 @@ function filterCatOptions(val) {
 }
 
 function selectCatOption(val) {
-  document.getElementById('f-cat').value = val;
+  const category = normalizeCategoryLabel(val);
+  document.getElementById('f-cat').value = category;
   const txt = document.getElementById('cat-display-txt');
-  if (txt) { txt.textContent = val; txt.style.color = '#12192C'; }
+  if (txt) { txt.textContent = category; txt.style.color = '#12192C'; }
   document.getElementById('cat-drop').style.display = 'none';
   const inp = document.getElementById('cat-search-inp');
   if (inp) inp.value = '';
+  renderDynamicFields(category);
 }
 
 // no-op legacy
@@ -3360,11 +4463,8 @@ async function updateRoomCount() {
   const statRooms = document.getElementById('stat-rooms');
   if (!statRooms) return;
   try {
-    const snap = await db.collection('shops').where('active','==',true).get();
-    const rooms = [];
-    snap.forEach(d => { const cat = d.data().category || ''; if (cat.includes('Room')||cat.includes('PG')) rooms.push(d); });
-    statRooms.textContent = (rooms.length + 6) + '+';
-  } catch(e) { statRooms.textContent = '6+'; }
+    statRooms.textContent = String(getRoomListings().length);
+  } catch(e) { statRooms.textContent = '0'; }
 }
 
 function catIcon(c) {
@@ -3374,17 +4474,23 @@ function catIcon(c) {
   if (c.includes('Hotel')||c.includes('Lodge')) return '🏨';
   if (c.includes('College')||c.includes('University')||c.includes('Institute')) return '🎓';
   if (c.includes('School')||c.includes('Coaching')) return '🏫';
-  if (c.includes('Petrol')||c.includes('Fuel')||c.includes('Pump')) return '⛽';
+  if (c.includes('Petrol')||c.includes('Fuel')||c.includes('Pump')||c.includes('CNG')) return '⛽';
   if (c.includes('ATM')) return '🏧';
   if (c.includes('Bank')) return '🏦';
+  if (c.includes('Mall')) return '🏬';
+  if (c.includes('Jewellery')) return '💍';
+  if (c.includes('Cinema')||c.includes('Multiplex')) return '🎬';
+  if (c.includes('Garage')||c.includes('Car Repair')) return '🚗';
+  if (c.includes('EV Charging')) return '⚡';
+  if (c.includes('Property for Sale')) return '🏠';
   if (c.includes('Swiggy')) return '🟠';
   if (c.includes('Zomato')) return '🔴';
   if (c.includes('Domino')||c.includes('Pizza')) return '🍕';
   if (c.includes('Gym')||c.includes('Fitness')) return '💪';
   if (c.includes('Gas')) return '🔥';
   if (c.includes('Furniture')) return '🪑';
-  if (c.includes('Book')) return '📚';
-  if (c.includes('Electric')) return '🔌';
+  if (c.includes('Book')||c.includes('Stationery')) return '📚';
+  if (c.includes('Electronics Repair') || c.includes('Electric')) return '🔌';
   if (c.includes('Medical')||c.includes('Pharmacy')) return '💊';
   if (c.includes('Cake')||c.includes('Bakery')) return '🎂';
   if (c.includes('Car')||c.includes('Bike')||c.includes('Wash')) return '🚗';
@@ -3392,6 +4498,7 @@ function catIcon(c) {
   if (c.includes('Vegetable')) return '🥦';
   if (c.includes('Laundry')) return '🧺';
   if (c.includes('Room')||c.includes('PG')) return '🏠';
+  if (c.includes('Mobile Brand Store')) return '🏬';
   if (c.includes('Mobile')||c.includes('Phone')) return '📱';
   if (c.includes('Exclusive')) return '🏬';
   return '🏪';
@@ -3400,6 +4507,59 @@ function catIcon(c) {
 // ================================================================
 //  HELPERS
 // ================================================================
+function categoryIconMarkup(category) {
+  const cat = normalizeCategoryLabel(category || '');
+  const badges = {
+    'Room/PG': `<svg viewBox="0 0 44 44" aria-hidden="true"><defs><linearGradient id="g-room" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F59E0B"/><stop offset="1" stop-color="#EA580C"/></linearGradient></defs><rect width="44" height="44" rx="12" fill="url(#g-room)"/><path d="M10 24.5 22 14l12 10.5v9H10z" fill="#fff"/><path d="M18 33v-7h8v7" fill="#F59E0B"/><path d="M12.5 24 22 16l9.5 8" fill="none" stroke="#FDE68A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    'Grocery': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#22C55E"/><rect x="11" y="15" width="20" height="14" rx="3" fill="#fff"/><path d="M14 15c0-3.3 2.2-5.5 5.4-5.5 1.3 0 2.5.4 3.6 1.3 1-.9 2.3-1.3 3.5-1.3 3.2 0 5.5 2.2 5.5 5.5" fill="none" stroke="#DCFCE7" stroke-width="2"/><circle cx="17" cy="22" r="2" fill="#22C55E"/><circle cx="22" cy="22" r="2" fill="#F97316"/><circle cx="27" cy="22" r="2" fill="#EF4444"/></svg>`,
+    'Restaurant': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#F97316"/><path d="M16 10v11" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><path d="M13.5 10v6M18.5 10v6" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M28 10c-2.6 2.4-3.7 5.1-3.1 8.1.3 1.5 1.4 2.7 2.8 3.2V34" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 21v13" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    'Petrol Pump/CNG': `<svg viewBox="0 0 44 44" aria-hidden="true"><defs><linearGradient id="g-fuel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EF4444"/><stop offset="1" stop-color="#B91C1C"/></linearGradient></defs><rect width="44" height="44" rx="12" fill="url(#g-fuel)"/><rect x="12" y="11" width="12" height="21" rx="3" fill="#fff"/><rect x="14.5" y="14" width="7" height="5" rx="1.5" fill="#FCA5A5"/><path d="M24 14h5.5c1.4 0 2.5 1.1 2.5 2.5v8.2c0 1 .8 1.8 1.8 1.8h.2" fill="none" stroke="#FECACA" stroke-width="2" stroke-linecap="round"/><path d="M16 35c4.3-5.6 8.7-5.6 13 0" fill="none" stroke="#FDE68A" stroke-width="2" stroke-linecap="round"/></svg>`,
+    'ATM Machine': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#14B8A6"/><rect x="10" y="11" width="24" height="22" rx="4" fill="#fff"/><rect x="14" y="15" width="16" height="4" rx="2" fill="#99F6E4"/><rect x="14" y="22" width="10" height="7" rx="2" fill="#CCFBF1"/><path d="M27 23h3M27 27h3" stroke="#14B8A6" stroke-width="2" stroke-linecap="round"/></svg>`,
+    'Bank': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#2563EB"/><path d="M9 17 22 10l13 7H9Z" fill="#DBEAFE"/><path d="M12 19h4v11h-4zM20 19h4v11h-4zM28 19h4v11h-4z" fill="#fff"/><rect x="10" y="31" width="24" height="3" rx="1.5" fill="#BFDBFE"/></svg>`,
+    'Hotel': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#8B5CF6"/><rect x="11" y="10" width="22" height="24" rx="4" fill="#fff"/><path d="M17 14h10" stroke="#C4B5FD" stroke-width="2" stroke-linecap="round"/><path d="M16 20h4v4h-4zM24 20h4v4h-4zM16 27h4v4h-4zM24 27h4v4h-4z" fill="#DDD6FE"/></svg>`,
+    'School': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#0EA5E9"/><path d="M11 18 22 12l11 6-11 6Z" fill="#fff"/><path d="M15 22v6.5c0 1.4 3.1 3.5 7 3.5s7-2.1 7-3.5V22" fill="none" stroke="#BAE6FD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M33 19v8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>`,
+    'College': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#4F46E5"/><path d="M10 18 22 12l12 6-12 6Z" fill="#fff"/><path d="M16 22v5c0 1.2 2.7 3 6 3s6-1.8 6-3v-5" fill="none" stroke="#C7D2FE" stroke-width="2" stroke-linejoin="round"/><circle cx="32" cy="23" r="2" fill="#E0E7FF"/></svg>`,
+    'Gym': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#111827"/><path d="M13 18h4v8h-4zM27 18h4v8h-4zM17 21h10v2H17zM11 16h2v12h-2zM31 16h2v12h-2z" fill="#F59E0B"/></svg>`,
+    'Gym Shop': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#111827"/><path d="M13 18h4v8h-4zM27 18h4v8h-4zM17 21h10v2H17zM11 16h2v12h-2zM31 16h2v12h-2z" fill="#F59E0B"/></svg>`,
+    'Medical': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#10B981"/><rect x="18" y="11" width="8" height="22" rx="2" fill="#fff"/><rect x="11" y="18" width="22" height="8" rx="2" fill="#fff"/><circle cx="32" cy="14" r="4" fill="#6EE7B7"/></svg>`,
+    'Medical Shop': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#10B981"/><rect x="18" y="11" width="8" height="22" rx="2" fill="#fff"/><rect x="11" y="18" width="22" height="8" rx="2" fill="#fff"/><circle cx="32" cy="14" r="4" fill="#6EE7B7"/></svg>`,
+    'Gas': `<svg viewBox="0 0 44 44" aria-hidden="true"><defs><linearGradient id="g-gas" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FB7185"/><stop offset="1" stop-color="#F97316"/></linearGradient></defs><rect width="44" height="44" rx="12" fill="#7C2D12"/><path d="M22 10c4.7 5.4 8 9.2 8 13a8 8 0 1 1-16 0c0-3.8 3.3-7.6 8-13Z" fill="url(#g-gas)"/><path d="M22 16c1.9 2.3 3.5 4.3 3.5 6a3.5 3.5 0 1 1-7 0c0-1.7 1.6-3.7 3.5-6Z" fill="#FDBA74"/></svg>`,
+    'Furniture': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#A16207"/><rect x="12" y="16" width="20" height="8" rx="3" fill="#FEF3C7"/><rect x="14" y="14" width="16" height="4" rx="2" fill="#FDE68A"/><path d="M16 24v8M28 24v8" stroke="#FEF3C7" stroke-width="2" stroke-linecap="round"/></svg>`,
+    'Furniture Shop': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#A16207"/><rect x="12" y="16" width="20" height="8" rx="3" fill="#FEF3C7"/><rect x="14" y="14" width="16" height="4" rx="2" fill="#FDE68A"/><path d="M16 24v8M28 24v8" stroke="#FEF3C7" stroke-width="2" stroke-linecap="round"/></svg>`,
+    'Books': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#7C3AED"/><path d="M13 13h12a4 4 0 0 1 4 4v14H17a4 4 0 0 0-4 4Z" fill="#fff"/><path d="M17 13h14v18H17" fill="#DDD6FE"/><path d="M19 18h8M19 22h8" stroke="#7C3AED" stroke-width="2" stroke-linecap="round"/></svg>`,
+    'Book & Stationery Store': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#7C3AED"/><path d="M13 13h12a4 4 0 0 1 4 4v14H17a4 4 0 0 0-4 4Z" fill="#fff"/><path d="M17 13h14v18H17" fill="#DDD6FE"/><path d="M19 18h8M19 22h8" stroke="#7C3AED" stroke-width="2" stroke-linecap="round"/></svg>`,
+    'Cake Shop': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#EC4899"/><path d="M13 23h18v8H13z" fill="#fff"/><path d="M15 19c1.2 0 1.2 1.5 2.4 1.5s1.2-1.5 2.4-1.5 1.2 1.5 2.4 1.5 1.2-1.5 2.4-1.5 1.2 1.5 2.4 1.5 1.2-1.5 2.4-1.5V23H15Z" fill="#FBCFE8"/><path d="M22 11v6" stroke="#FDE68A" stroke-width="2" stroke-linecap="round"/><circle cx="22" cy="10" r="2" fill="#F59E0B"/></svg>`,
+    'Car Wash': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#0891B2"/><path d="M12 24h20l-2-6H14z" fill="#fff"/><circle cx="17" cy="30" r="3" fill="#E0F2FE"/><circle cx="27" cy="30" r="3" fill="#E0F2FE"/><path d="M16 12c0 2-2 2-2 4M22 12c0 2-2 2-2 4M28 12c0 2-2 2-2 4" fill="none" stroke="#BAE6FD" stroke-width="2" stroke-linecap="round"/></svg>`,
+    'Fruit': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#F43F5E"/><circle cx="22" cy="24" r="10" fill="#fff"/><path d="M22 14c1-2.5 2.8-4 5.2-4" fill="none" stroke="#86EFAC" stroke-width="2" stroke-linecap="round"/><path d="M23 12c-1.6 1.5-3.8 1.9-6 1" fill="none" stroke="#4ADE80" stroke-width="2" stroke-linecap="round"/></svg>`,
+    'Fruit Shop': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#F43F5E"/><circle cx="22" cy="24" r="10" fill="#fff"/><path d="M22 14c1-2.5 2.8-4 5.2-4" fill="none" stroke="#86EFAC" stroke-width="2" stroke-linecap="round"/><path d="M23 12c-1.6 1.5-3.8 1.9-6 1" fill="none" stroke="#4ADE80" stroke-width="2" stroke-linecap="round"/></svg>`,
+    'Vegetables': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#16A34A"/><path d="M22 12c5.5 0 10 4.5 10 10s-4.5 10-10 10-10-4.5-10-10 4.5-10 10-10Z" fill="#DCFCE7"/><path d="M22 13v18M13 22h18M16 16l12 12M28 16 16 28" stroke="#4ADE80" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+    'Vegetable Shop': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#16A34A"/><path d="M22 12c5.5 0 10 4.5 10 10s-4.5 10-10 10-10-4.5-10-10 4.5-10 10-10Z" fill="#DCFCE7"/><path d="M22 13v18M13 22h18M16 16l12 12M28 16 16 28" stroke="#4ADE80" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+    'Electronics Repair': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#334155"/><rect x="13" y="12" width="18" height="14" rx="3" fill="#E2E8F0"/><path d="M19 30h6M17 33h10" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/><path d="m22 16-2 4h3l-2 4" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    'Mobile Shop': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#0F766E"/><rect x="15" y="9" width="14" height="26" rx="4" fill="#fff"/><rect x="18" y="13" width="8" height="14" rx="2" fill="#99F6E4"/><circle cx="22" cy="31" r="1.5" fill="#14B8A6"/></svg>`,
+    'Exclusive Store': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#7C2D12"/><rect x="11" y="18" width="22" height="14" rx="3" fill="#fff"/><path d="M10 18h24l-2-6H12z" fill="#FDBA74"/><path d="M18 18v14M26 18v14" stroke="#FED7AA" stroke-width="2"/></svg>`,
+    'Shopping Mall': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#4F46E5"/><rect x="10" y="12" width="24" height="20" rx="4" fill="#fff"/><path d="M16 12V9h12v3" fill="none" stroke="#C7D2FE" stroke-width="2" stroke-linecap="round"/><path d="M15 19h4v4h-4zM25 19h4v4h-4zM15 25h14" stroke="#A5B4FC" stroke-width="2" stroke-linecap="round"/></svg>`,
+    'Jewellery Shop': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#B45309"/><path d="M14 18 22 11l8 7-8 15Z" fill="#fff"/><path d="M14 18h16" stroke="#FDE68A" stroke-width="2"/><circle cx="22" cy="16" r="3" fill="#FDE68A"/></svg>`,
+    'Cinema Hall': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#111827"/><rect x="11" y="12" width="22" height="20" rx="4" fill="#fff"/><path d="M16 12v20M28 12v20" stroke="#D1D5DB" stroke-width="2"/><path d="M11 18h22M11 26h22" stroke="#D1D5DB" stroke-width="2"/><circle cx="22" cy="22" r="4" fill="#F59E0B"/></svg>`,
+    'Cinema Hall / Multiplex': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#111827"/><rect x="11" y="12" width="22" height="20" rx="4" fill="#fff"/><path d="M16 12v20M28 12v20" stroke="#D1D5DB" stroke-width="2"/><path d="M11 18h22M11 26h22" stroke="#D1D5DB" stroke-width="2"/><circle cx="22" cy="22" r="4" fill="#F59E0B"/></svg>`,
+    'Garage': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#374151"/><path d="M12 24h20l-2.5-6h-15z" fill="#fff"/><circle cx="17" cy="29" r="3" fill="#D1D5DB"/><circle cx="27" cy="29" r="3" fill="#D1D5DB"/><path d="m31 14-4 4" stroke="#F59E0B" stroke-width="2.4" stroke-linecap="round"/><path d="m28 13 4 4" stroke="#F59E0B" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+    'Garage / Car Repair': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#374151"/><path d="M12 24h20l-2.5-6h-15z" fill="#fff"/><circle cx="17" cy="29" r="3" fill="#D1D5DB"/><circle cx="27" cy="29" r="3" fill="#D1D5DB"/><path d="m31 14-4 4" stroke="#F59E0B" stroke-width="2.4" stroke-linecap="round"/><path d="m28 13 4 4" stroke="#F59E0B" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+    'EV Charging': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#15803D"/><rect x="13" y="11" width="14" height="22" rx="3" fill="#fff"/><path d="M20 15 17.5 21h4L19 29" fill="none" stroke="#22C55E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M27 16h3c1.1 0 2 .9 2 2v6" fill="none" stroke="#BBF7D0" stroke-width="2" stroke-linecap="round"/><circle cx="32" cy="26" r="2" fill="#BBF7D0"/></svg>`,
+    'EV Charging Station': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#15803D"/><rect x="13" y="11" width="14" height="22" rx="3" fill="#fff"/><path d="M20 15 17.5 21h4L19 29" fill="none" stroke="#22C55E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M27 16h3c1.1 0 2 .9 2 2v6" fill="none" stroke="#BBF7D0" stroke-width="2" stroke-linecap="round"/><circle cx="32" cy="26" r="2" fill="#BBF7D0"/></svg>`,
+    'Property for Sale': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#EA580C"/><path d="M11 23 22 13l11 10v10H11z" fill="#fff"/><path d="M19 33v-7h6v7" fill="#FDBA74"/><path d="M29 14h4v6" fill="none" stroke="#FED7AA" stroke-width="2" stroke-linecap="round"/><rect x="26" y="9" width="8" height="5" rx="2.5" fill="#FDE68A"/></svg>`,
+    'Laundry': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#2563EB"/><rect x="12" y="10" width="20" height="24" rx="4" fill="#fff"/><circle cx="22" cy="24" r="6" fill="#BFDBFE"/><circle cx="18" cy="15" r="1.5" fill="#60A5FA"/><circle cx="22" cy="15" r="1.5" fill="#60A5FA"/><circle cx="26" cy="15" r="1.5" fill="#60A5FA"/></svg>`,
+    'Tiffin': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#D97706"/><rect x="12" y="16" width="20" height="14" rx="4" fill="#fff"/><path d="M16 16v-3h12v3" fill="none" stroke="#FDE68A" stroke-width="2" stroke-linecap="round"/><path d="M22 16v14" stroke="#FCD34D" stroke-width="2"/><path d="M15 22h14" stroke="#FCD34D" stroke-width="2"/></svg>`,
+    'Swiggy': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#F97316"/><path d="M22.5 9c-5.7 0-9.8 3.8-9.8 9.1 0 2.2.8 4.3 2.3 6.1l6.7 7.8c.5.6 1.3.6 1.8 0l6.6-7.7c1.5-1.8 2.4-4 2.4-6.2 0-5.3-4.1-9.1-10-9.1Zm-.1 4.6c2 0 3.5 1 4 2.7h-3.2c-.9 0-1.8.7-1.8 1.7 0 1 .9 1.7 1.8 1.7h3.3c-.5 1.6-2 2.6-4 2.6-2.6 0-4.6-1.8-4.6-4.4s2.1-4.3 4.5-4.3Z" fill="#fff"/></svg>`,
+    'Zomato': `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#E23744"/><path d="M12 13h20v2.8L18.4 28.2H32V31H12v-2.7l13.7-12.6H12z" fill="#fff"/></svg>`,
+    "Domino's": `<svg viewBox="0 0 44 44" aria-hidden="true"><g transform="translate(22 22) rotate(45) translate(-22 -22)"><rect x="12" y="12" width="20" height="20" rx="4" fill="#fff"/><path d="M12 12h20v10H12z" fill="#E31837"/><path d="M12 22h20v10H12z" fill="#0066B2"/><circle cx="19" cy="17" r="2" fill="#fff"/><circle cx="19" cy="27" r="2" fill="#fff"/><circle cx="25" cy="27" r="2" fill="#fff"/></g></svg>`,
+    'Dominos': `<svg viewBox="0 0 44 44" aria-hidden="true"><g transform="translate(22 22) rotate(45) translate(-22 -22)"><rect x="12" y="12" width="20" height="20" rx="4" fill="#fff"/><path d="M12 12h20v10H12z" fill="#E31837"/><path d="M12 22h20v10H12z" fill="#0066B2"/><circle cx="19" cy="17" r="2" fill="#fff"/><circle cx="19" cy="27" r="2" fill="#fff"/><circle cx="25" cy="27" r="2" fill="#fff"/></g></svg>`
+  };
+  return badges[cat] || `<svg viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="12" fill="#0F172A"/><path d="M14 18h16v12H14z" fill="#fff"/><path d="M18 14h8" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round"/></svg>`;
+}
+
+function applyRealisticCategoryIcons() {
+  return;
+}
+
 function spin(msg) { document.getElementById('spin-txt').textContent = msg; document.getElementById('spin').classList.add('show'); }
 function hideSpin() { document.getElementById('spin').classList.remove('show'); }
 function toast(msg, type) {
@@ -3664,10 +4824,20 @@ function stopNavigation() {
 // ── Cache config ──────────────────────────────────────────────────
 const LOC_CACHE_KEY = 'nb_loc_cache_v2';
 const LOC_MOVE_THRESHOLD = 30; // metres
+const LOC_RENDER_THRESHOLD = 15; // metres
+const LOC_GEOCODE_TTL_MS = 3 * 60 * 1000;
+const LIVE_LOCATION_STATE = {
+  coords: null,
+  geocodeCoords: null,
+  display: null,
+  geocode: null,
+  geocodeFetchedAt: 0,
+  lastRenderCoords: null,
+  lastUiText: ''
+};
 
 // Clear any stale cached location immediately — always show real GPS location
-try { localStorage.removeItem(LOC_CACHE_KEY); } catch {}
-try { localStorage.removeItem('nb_loc_cache_v1'); } catch {}  // clear old version too
+try { localStorage.removeItem('nb_loc_cache_v1'); } catch {}
 
 /**
  * updateLocationUI(text)
@@ -3679,8 +4849,20 @@ try { localStorage.removeItem('nb_loc_cache_v1'); } catch {}  // clear old versi
 function updateLocationUI(text) {
   const el = document.getElementById('hero-loc-text');
   if (!el) return;
-  const trimmed = text.length > 40 ? text.slice(0, 38) + '…' : text;
+  const safe = String(text || '').trim() || 'Detecting...';
+  if (LIVE_LOCATION_STATE.lastUiText === safe) return;
+  LIVE_LOCATION_STATE.lastUiText = safe;
+  const trimmed = safe.length > 32 ? safe.slice(0, 30) + '...' : safe;
   el.textContent = trimmed;
+}
+
+function formatLiveLocationLabel(parts = {}) {
+  const area = parts.area || parts.city || parts.locality || '';
+  const pincode = String(parts.pincode || '').trim();
+  if (area && pincode) return `${area}, ${pincode}`;
+  if (area) return area;
+  if (parts.city && pincode) return `${parts.city}, ${pincode}`;
+  return pincode || 'Location found';
 }
 
 /**
@@ -3701,6 +4883,14 @@ function updateLocationUI(text) {
  * @returns {Promise<string>}
  */
 async function getPlaceFromCoords(lat, lon) {
+  const now = Date.now();
+  const cached = LIVE_LOCATION_STATE.geocode;
+  if (cached && LIVE_LOCATION_STATE.geocodeCoords) {
+    const movedM = calcDist(LIVE_LOCATION_STATE.geocodeCoords.lat, LIVE_LOCATION_STATE.geocodeCoords.lng, lat, lon) * 1000;
+    if (movedM < LOC_MOVE_THRESHOLD && (now - LIVE_LOCATION_STATE.geocodeFetchedAt) < LOC_GEOCODE_TTL_MS) {
+      return cached;
+    }
+  }
   // ── Strategy: Try multiple Nominatim zoom levels to get pincode ──
   // zoom=14 gives broader area with better postcode coverage for rural India
   // zoom=18 gives street level but postcode often missing in rural areas
@@ -3723,19 +4913,18 @@ async function getPlaceFromCoords(lat, lon) {
   const aw = dataWide.address || {};
 
   // ── Place: prefer village > town > suburb > city ──────────────
-  const place =
-    a.village       || a.town        || a.suburb      ||
-    a.neighbourhood || a.hamlet      || a.quarter      ||
-    a.city_district || a.city        || a.municipality ||
+  const area =
+    a.suburb        || a.neighbourhood || a.quarter       ||
+    a.village       || a.town          || a.city_district ||
+    a.hamlet        || a.municipality  ||
     a.county        || '';
 
   // ── District ──────────────────────────────────────────────────
-  const district =
-    a.county        || a.state_district ||
-    a.city_district || a.city           || '';
+  const city =
+    a.city          || a.town          || a.municipality  ||
+    a.county        || a.state_district || a.city_district || '';
 
   // ── State ─────────────────────────────────────────────────────
-  const state = a.state || aw.state || '';
 
   // ── Pincode: try both zoom responses — wide area is more reliable
   // Also try India-specific postoffice API as second source
@@ -3760,16 +4949,18 @@ async function getPlaceFromCoords(lat, lon) {
   }
 
   // ── Build label ───────────────────────────────────────────────
-  const parts = [];
-  if (place)                          parts.push(place);
-  if (district && district !== place) parts.push(district);
-  if (state)                          parts.push(state);
+  const label = formatLiveLocationLabel({ area, city, pincode });
+  const result = { area, city, pincode, label };
+  LIVE_LOCATION_STATE.geocode = result;
+  LIVE_LOCATION_STATE.geocodeFetchedAt = now;
+  LIVE_LOCATION_STATE.geocodeCoords = { lat, lng: lon };
+  try {
+    localStorage.setItem(LOC_CACHE_KEY, JSON.stringify({
+      lat, lng: lon, area, city, pincode, label, ts: now
+    }));
+  } catch {}
 
-  let label = parts.join(', ');
-  if (pincode) label = label + ' - ' + pincode;
-  label = label.trim() || 'Location found';
-
-  return label;
+  return result;
 }
 
 /**
@@ -3814,14 +5005,29 @@ function getUserLocation() {
  * @param {number} lng
  */
 async function updateLocDisplay(lat, lng) {
-  updateLocationUI('Detecting location...');
+  const prev = LIVE_LOCATION_STATE.lastRenderCoords;
+  if (prev) {
+    const movedM = calcDist(prev.lat, prev.lng, lat, lng) * 1000;
+    if (movedM < LOC_RENDER_THRESHOLD && LIVE_LOCATION_STATE.display) {
+      updateLocationUI(LIVE_LOCATION_STATE.display.label);
+      return LIVE_LOCATION_STATE.display;
+    }
+  }
+  updateLocationUI('Detecting...');
   try {
-    const label = await getPlaceFromCoords(lat, lng);
-    updateLocationUI(label);
+    const place = await getPlaceFromCoords(lat, lng);
+    LIVE_LOCATION_STATE.display = place;
+    LIVE_LOCATION_STATE.lastRenderCoords = { lat, lng };
+    updateLocationUI(place.label);
+    return place;
   } catch (err) {
     console.warn('[NearbyApp] Reverse geocode error:', err);
     // Show coords as last resort so the pill is never empty
-    updateLocationUI(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+    const fallback = { area: '', city: '', pincode: '', label: `${lat.toFixed(4)}, ${lng.toFixed(4)}` };
+    LIVE_LOCATION_STATE.display = fallback;
+    LIVE_LOCATION_STATE.lastRenderCoords = { lat, lng };
+    updateLocationUI(fallback.label);
+    return fallback;
   }
 }
 
@@ -3904,8 +5110,26 @@ const LocSystem = {
     this._lastGeocodedLoc = null;
     this._hadFirstFix     = false;
     this._toastedFix      = false;
-    // Wipe any leftover geocode cache
-    try { localStorage.removeItem(LOC_CACHE_KEY); } catch {}
+    try {
+      const raw = localStorage.getItem(LOC_CACHE_KEY);
+      if (raw) {
+        const cached = JSON.parse(raw);
+        if (cached?.label && cached?.ts && (Date.now() - cached.ts) < LOC_GEOCODE_TTL_MS) {
+          LIVE_LOCATION_STATE.display = {
+            area: cached.area || '',
+            city: cached.city || '',
+            pincode: cached.pincode || '',
+            label: cached.label
+          };
+          LIVE_LOCATION_STATE.geocode = LIVE_LOCATION_STATE.display;
+          LIVE_LOCATION_STATE.geocodeFetchedAt = cached.ts;
+          LIVE_LOCATION_STATE.geocodeCoords = (typeof cached.lat === 'number' && typeof cached.lng === 'number')
+            ? { lat: cached.lat, lng: cached.lng }
+            : null;
+          updateLocationUI(cached.label);
+        }
+      }
+    } catch {}
     try { localStorage.removeItem('nb_loc_cache_v1'); } catch {}
 
     // Query browser permission state
@@ -4028,7 +5252,9 @@ const LocSystem = {
   // ── Success callback ───────────────────────────────────────────
   _onSuccess(pos, mode) {
     const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+    const prevCoords = userLoc ? { lat: userLoc.lat, lng: userLoc.lng } : null;
     userLoc = { lat, lng, accuracy };
+    LIVE_LOCATION_STATE.coords = { lat, lng };
 
     // Accuracy chip
     const accTxt = accuracy < 20 ? `±${Math.round(accuracy)}m · High accuracy`
@@ -4040,7 +5266,8 @@ const LocSystem = {
     document.getElementById('loc-denied-bar').classList.add('hidden');
 
     // Re-render shop lists — immediate on first fix, debounced on subsequent watch updates
-    if (mode === 'once' || !this._hadFirstFix) {
+    const movedForRender = prevCoords ? calcDist(prevCoords.lat, prevCoords.lng, lat, lng) * 1000 : 999;
+    if (mode === 'once' || !this._hadFirstFix || movedForRender > LOC_RENDER_THRESHOLD) {
       this._hadFirstFix = true;
       renderShopLists();
     } else {
@@ -4056,6 +5283,8 @@ const LocSystem = {
     if (!_prevLoc || _movedM > LOC_MOVE_THRESHOLD) {
       LocSystem._lastGeocodedLoc = { lat, lng };
       updateLocDisplay(lat, lng);
+    } else if (LIVE_LOCATION_STATE.display?.label) {
+      updateLocationUI(LIVE_LOCATION_STATE.display.label);
     }
 
     // Update all open maps with real address in marker popup
@@ -4109,7 +5338,10 @@ const LocSystem = {
   // ── Denied / no location state ─────────────────────────────────
   _onDenied() {
     userLoc = null;
-    updateLocationUI('Location denied');
+    LIVE_LOCATION_STATE.coords = null;
+    LIVE_LOCATION_STATE.geocodeCoords = null;
+    LIVE_LOCATION_STATE.lastRenderCoords = null;
+    updateLocationUI('Enable location');
     this._setAccChip('off', '');
     document.getElementById('loc-denied-bar').classList.remove('hidden');
     // Still render shops (with static distKm from sample data)
@@ -4173,8 +5405,7 @@ window.addEventListener('load', () => {
   // Online/offline toasts
   window.addEventListener('offline', () => toast('📡 No internet connection', ''));
   window.addEventListener('online',  () => toast('✅ Back online', 'ok'));
-  // Clear any stale location cache from previous session
-  try { localStorage.removeItem('nb_loc_cache_v2'); } catch {}
+  // Remove only the legacy cache version. Current cache is short-lived.
   try { localStorage.removeItem('nb_loc_cache_v1'); } catch {}
 });
 
@@ -4198,21 +5429,18 @@ function openLocPopup() {
   if (navigator.geolocation) {
     const statusEl = document.getElementById('loc-popup-status');
     if (statusEl) statusEl.textContent = 'Getting your current location...';
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        userLoc = { lat, lng, accuracy: pos.coords.accuracy };
+    if (typeof LocSystem !== 'undefined') LocSystem._startWatch();
+    getUserLocation()
+      .then(({ lat, lng, accuracy }) => {
+        userLoc = { lat, lng, accuracy };
+        LIVE_LOCATION_STATE.coords = { lat, lng };
         renderShopLists();
         initLocPopupMap(lat, lng);
-      },
-      () => {
-        // Fallback to existing userLoc if fresh GPS fails
+      })
+      .catch(() => {
         if (userLoc) initLocPopupMap(userLoc.lat, userLoc.lng);
         else getLiveLocForPopup();
-      },
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-    );
+      });
   } else if (userLoc) {
     initLocPopupMap(userLoc.lat, userLoc.lng);
   } else {
@@ -4238,8 +5466,10 @@ function getLiveLocForPopup() {
     if (statusEl) statusEl.textContent = '❌ Geolocation is not supported on this browser.';
     return;
   }
+  if (typeof LocSystem !== 'undefined') LocSystem._startWatch();
   navigator.geolocation.getCurrentPosition(pos => {
-    userLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    userLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
+    LIVE_LOCATION_STATE.coords = { lat: userLoc.lat, lng: userLoc.lng };
     renderShopLists();
     updateLocDisplay(userLoc.lat, userLoc.lng);
     initLocPopupMap(userLoc.lat, userLoc.lng);
@@ -4261,12 +5491,12 @@ async function initLocPopupMap(lat, lng) {
   // Use the same getPlaceFromCoords that drives the hero pill —
   // gives "Village, District, State - Pincode" format
   try {
-    const label = await getPlaceFromCoords(lat, lng);
+    const place = await getPlaceFromCoords(lat, lng);
+    const label = place.label;
     if (statusEl) {
       // Build a richer display with pincode highlighted separately
-      const hasPincode = /- \d{6}$/.test(label);
-      const mainAddr   = hasPincode ? label.replace(/- \d{6}$/, '').trim() : label;
-      const pincode    = hasPincode ? label.match(/\d{6}$/)[0] : '';
+      const mainAddr = place.area || place.city || label;
+      const pincode  = place.pincode || '';
       statusEl.innerHTML = `
         <div class="loc-popup-addr-block">
           📍 <strong>${mainAddr}</strong>
@@ -4295,8 +5525,8 @@ async function initLocPopupMap(lat, lng) {
   }).addTo(_locPopupMap);
   // Show actual address in marker popup
   try {
-    const addrLabel = await getPlaceFromCoords(lat, lng);
-    _locPopupMarker.bindPopup(`<b>📍 You are here</b><br><small style="color:#555;">${addrLabel}</small>`).openPopup();
+    const place = await getPlaceFromCoords(lat, lng);
+    _locPopupMarker.bindPopup(`<b>📍 You are here</b><br><small style="color:#555;">${place.label}</small>`).openPopup();
   } catch {
     _locPopupMarker.bindPopup('<b>📍 You are here</b>').openPopup();
   }
@@ -4318,6 +5548,14 @@ function openShopDetail(s) {
   document.getElementById('sd-icon').textContent = s.icon || '🏪';
   document.getElementById('sd-name').textContent  = s.name || '';
   document.getElementById('sd-cat').textContent   = s.cat || s.category || '';
+  const reportBtn = document.getElementById('sd-report-btn');
+  if (reportBtn) {
+    const reports = s.reportsCount || 0;
+    reportBtn.textContent = reports > 0 ? `Report this listing (${reports})` : 'Report this listing';
+    reportBtn.disabled = currentUser && s.ownerId && currentUser.uid === s.ownerId;
+    reportBtn.style.opacity = reportBtn.disabled ? '.55' : '1';
+    reportBtn.style.cursor = reportBtn.disabled ? 'not-allowed' : 'pointer';
+  }
 
   // Distance
   const dist = (userLoc && s.lat && s.lng)
@@ -4380,6 +5618,30 @@ function openShopDetail(s) {
 
 // openModal now opens full detail page
 function openModal(s) { openShopDetail(s); }
+async function sdReportListing() {
+  if (!_sdShop?.id) { toast('Listing not available for reporting', 'err'); return; }
+  if (!currentUser) { toast('Please login first', 'err'); return; }
+  if (_sdShop.ownerId && currentUser.uid === _sdShop.ownerId) { toast('You cannot report your own listing', 'err'); return; }
+  try {
+    const nextReports = (_sdShop.reportsCount || 0) + 1;
+    const nextHidden = nextReports > 3;
+    const nextTrust = Math.max(0, (_sdShop.trustScore || 100) - 20);
+    await db.collection('businesses').doc(_sdShop.id).set({
+      reportsCount: nextReports,
+      trustScore: nextTrust,
+      isHidden: nextHidden,
+      active: !nextHidden,
+      status: nextHidden ? 'hidden' : nextTrust < 70 ? 'limited' : 'active'
+    }, { merge: true });
+    _sdShop.reportsCount = nextReports;
+    _sdShop.trustScore = nextTrust;
+    _sdShop.isHidden = nextHidden;
+    toast(nextHidden ? 'Listing hidden after multiple reports.' : 'Thanks. This listing has been reported.', nextHidden ? '' : 'ok');
+    openShopDetail(_sdShop);
+  } catch (e) {
+    toast('Could not submit report: ' + e.message, 'err');
+  }
+}
 function closeModal(e) { if (e && e.target===document.getElementById('modal')) document.getElementById('modal').classList.remove('open'); }
 
 function _sdIsOpen(h) {
@@ -4446,7 +5708,7 @@ function _sdInitMap() {
     const userM = L.marker([userLoc.lat, userLoc.lng], { icon:pulseIcon }).addTo(_sdMap);
     // Get real address for user marker popup
     getPlaceFromCoords(userLoc.lat, userLoc.lng)
-      .then(lbl => userM.bindPopup(`<b>📍 You are here</b><br><small style="color:#555;">${lbl}</small>`))
+      .then(place => userM.bindPopup(`<b>📍 You are here</b><br><small style="color:#555;">${place.label}</small>`))
       .catch(()  => userM.bindPopup('<b>📍 You are here</b>'));
 
     _sdMap.fitBounds([[userLoc.lat,userLoc.lng],[sLat,sLng]], { padding:[50,50] });
@@ -4967,12 +6229,7 @@ const ADMIN_DEMO = {
     {id:'u4', name:'Neha Gupta',     email:'neha@gmail.com',     phone:'+919876543213', role:'owner', status:'banned',  joined:'2024-02-10', shops:1},
     {id:'u5', name:'Vikram Patel',   email:'vikram@gmail.com',   phone:'+919876543214', role:'admin', status:'active',  joined:'2023-12-01', shops:0},
   ],
-  shops: [
-    {id:'s1', name:'Fresh Mart',    owner:'Priya Singh',  cat:'Grocery',    status:'active',  revenue:4500},
-    {id:'s2', name:'Tech Hub',      owner:'Priya Singh',  cat:'Mobile Shop',status:'active',  revenue:8200},
-    {id:'s3', name:'Cake Palace',   owner:'Neha Gupta',   cat:'Cake',       status:'pending', revenue:0},
-    {id:'s4', name:'Green Veggies', owner:'Amit Sharma',  cat:'Vegetables', status:'pending', revenue:0},
-  ],
+  shops: [],
   payments: [
     {id:'p1', user:'Rahul Kumar',  plan:'Premium',  amount:99,  method:'UPI',        status:'success', date:'2024-03-10'},
     {id:'p2', user:'Priya Singh',  plan:'Business', amount:299, method:'Card',        status:'success', date:'2024-03-09'},
@@ -4990,6 +6247,28 @@ function openAdmin() {
   switchScreen('admin');
   admLoadStats();
   admTab('users');
+}
+
+async function loadAdminModerationQueue() {
+  try {
+    const snap = await db.collection('businesses').orderBy('trustScore', 'asc').limit(50).get();
+    ADMIN_DEMO.shops = snap.docs.map(doc => {
+      const s = doc.data();
+      const visibility = s.isHidden ? 'hidden' : (s.visibility || 'active');
+      return {
+        id: doc.id,
+        name: s.name || 'Unnamed',
+        cat: s.category || 'Other',
+        owner: s.owner || s.ownerEmail || 'Unknown',
+        status: visibility === 'normal' ? 'active' : visibility,
+        trustScore: s.trustScore || 100,
+        reportsCount: s.reportsCount || 0,
+        revenue: 0
+      };
+    }).filter(s => s.status !== 'active' || s.trustScore < 70 || s.reportsCount > 0);
+  } catch (e) {
+    console.log('Admin moderation load failed:', e.message);
+  }
 }
 
 function admLoadStats() {
@@ -5010,7 +6289,7 @@ function admTab(tab) {
     if(pane) pane.style.display = t===tab ? '' : 'none';
   });
   if (tab==='users')    admRenderUsers(ADMIN_DEMO.users);
-  if (tab==='shops')    admRenderShops(ADMIN_DEMO.shops);
+  if (tab==='shops') { loadAdminModerationQueue().then(() => admRenderShops(ADMIN_DEMO.shops)); return; }
   if (tab==='notifs')   admRenderNotifs();
   if (tab==='payments') admRenderPayments();
 }
@@ -5071,7 +6350,7 @@ function admRenderShops(shops) {
         </div>
         <span style="font-size:10px;padding:3px 9px;border-radius:999px;background:${s.status==='active'?'rgba(34,197,94,.15)':s.status==='pending'?'rgba(245,158,11,.15)':'rgba(252,165,165,.15)'};color:${s.status==='active'?'#22c55e':s.status==='pending'?'#f59e0b':'#ef4444'};">${s.status}</span>
       </div>
-      ${s.status==='pending' ? `
+      ${s.status!=='active' ? `
       <div style="display:flex;gap:8px;">
         <button onclick="admApproveShop('${s.id}')" style="flex:1;background:rgba(34,197,94,.1);color:#22c55e;border:none;border-radius:6px;padding:8px;font-size:12px;cursor:pointer;font-weight:600;">✅ Approve</button>
         <button onclick="admRejectShop('${s.id}')" style="flex:1;background:rgba(239,68,68,.1);color:#ef4444;border:none;border-radius:6px;padding:8px;font-size:12px;cursor:pointer;font-weight:600;">❌ Reject</button>
@@ -5087,9 +6366,23 @@ function admFilterShops(status) {
 
 function admApproveShop(sid) {
   const s = ADMIN_DEMO.shops.find(s=>s.id===sid);
-  if(s) { s.status='active'; toast('✅ Shop approved!','ok'); admRenderShops(ADMIN_DEMO.shops); admLoadStats(); }
+  if(s) {
+    db.collection('businesses').doc(sid).set({
+      isHidden: false,
+      active: true,
+      visibility: 'normal',
+      status: 'active',
+      trustScore: Math.max(75, s.trustScore || 75)
+    }, { merge: true }).catch(e => console.log(e.message));
+    s.status='active'; toast('✅ Shop approved!','ok'); admRenderShops(ADMIN_DEMO.shops); admLoadStats();
+  }
 }
 function admRejectShop(sid) {
+  db.collection('businesses').doc(sid).set({
+    isHidden: true,
+    active: false,
+    status: 'hidden'
+  }, { merge: true }).catch(e => console.log(e.message));
   ADMIN_DEMO.shops = ADMIN_DEMO.shops.filter(s=>s.id!==sid);
   toast('❌ Shop rejected','err'); admRenderShops(ADMIN_DEMO.shops); admLoadStats();
 }
@@ -5391,9 +6684,13 @@ function _checkPushBanner() {
 //  PROFILE PAGE — add Admin, Tracking, Payment buttons
 // ================================================================
 document.addEventListener('DOMContentLoaded', () => {
+  applyRealisticCategoryIcons();
   // Add quick-access buttons to profile page
   const profileContent = document.querySelector('#profile');
   if (!profileContent) return;
+  const upgradeCard = Array.from(profileContent.querySelectorAll('.info-card'))
+    .find(card => (card.textContent || '').includes('Upgrade Plan'));
+  if (upgradeCard) upgradeCard.remove();
   const extraBtns = document.createElement('div');
   extraBtns.style.cssText = 'padding:0 16px;';
   extraBtns.innerHTML = `
@@ -5414,6 +6711,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <span style="color:var(--muted);">›</span>
       </div>
     </div>`;
+  extraBtns.querySelector('[onclick="openPayment()"]')?.remove();
   // Insert before the logout button area
   const logoutBtn = profileContent.querySelector('[onclick*="doLogout"]')?.closest('div[style*="padding"]');
   if (logoutBtn) profileContent.insertBefore(extraBtns, logoutBtn);
@@ -5426,3 +6724,8 @@ const _origOnSuccess = _onMfaLoginSuccess;
 </script>
 </body>
 </html>
+
+
+
+
+
