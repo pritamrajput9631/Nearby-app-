@@ -23,7 +23,7 @@ function mapsError() {}
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
 <style>
-:root{--orange:#FF6B35;--orange-light:#FFF0EA;--navy:#12192C;--teal:#0ABFA3;--teal-light:#E6FAF7;--bg:#F7F5F0;--card:#FFFFFF;--text:#12192C;--muted:#7A7A8C;--border:#E8E5DF;--radius:16px;--rsm:10px;}
+:root{--orange:#FF6B35;--orange-light:#FFF0EA;--navy:#12192C;--teal:#0ABFA3;--teal-dark:#089a8a;--teal-light:#E6FAF7;--bg:#F7F5F0;--card:#FFFFFF;--text:#12192C;--muted:#7A7A8C;--border:#E8E5DF;--radius:16px;--rsm:10px;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 .screen{display:none;min-height:100vh;flex-direction:column;}
@@ -123,7 +123,6 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
 .home-hero{background:linear-gradient(135deg,#12192C 0%,#1a2540 100%);padding:18px 16px 26px;color:#fff;position:relative;overflow:visible;z-index:10;}
 .home-hero::after{content:'';position:absolute;width:200px;height:200px;background:radial-gradient(circle,rgba(255,107,53,.12) 0%,transparent 70%);top:-60px;right:-40px;border-radius:50%;pointer-events:none;}
 .hero-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.hero-greet-wrap{}
 .hero-time-label{font-size:11px;color:rgba(255,255,255,.45);letter-spacing:.4px;margin-bottom:2px;}
 .hero-name{font-family:'Baloo 2',cursive;font-size:22px;font-weight:700;line-height:1.2;}
 .hero-name .hi{color:rgba(255,255,255,.7);font-weight:500;font-size:18px;}
@@ -199,6 +198,158 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
 .shop-open{font-size:10px;color:#22c55e;font-weight:500;margin-top:1px;}
 .shop-closed{font-size:10px;color:#f59e0b;font-weight:500;margin-top:1px;}
 
+/* ===== PROPERTY STYLES — PREMIUM REDESIGN ===== */
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cardPop{from{opacity:0;transform:scale(0.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes shimmerLoad{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* Screen wrapper */
+#properties{background:#f0ede8;padding-bottom:80px;}
+
+/* Hero header */
+.prop-hero{background:linear-gradient(145deg,#0d1526 0%,#12192C 55%,#1a2d40 100%);padding:20px 16px 0;position:relative;overflow:hidden;}
+.prop-hero::before{content:'';position:absolute;width:280px;height:280px;background:radial-gradient(circle,rgba(255,107,53,.18) 0%,transparent 70%);top:-80px;right:-60px;border-radius:50%;}
+.prop-hero::after{content:'';position:absolute;width:200px;height:200px;background:radial-gradient(circle,rgba(10,191,163,.14) 0%,transparent 70%);bottom:-40px;left:-30px;border-radius:50%;}
+.prop-hero-inner{position:relative;z-index:1;}
+.prop-eyebrow{display:flex;align-items:center;gap:6px;margin-bottom:10px;}
+.prop-eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);}
+.prop-eyebrow-text{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);}
+.prop-hero-title{font-family:'Baloo 2',cursive;font-size:26px;font-weight:700;color:#fff;line-height:1.15;margin-bottom:6px;}
+.prop-hero-title span{color:var(--orange);}
+.prop-hero-sub{font-size:13px;color:rgba(255,255,255,.55);margin-bottom:16px;line-height:1.5;}
+
+/* Stats strip */
+.prop-stats{display:flex;gap:0;margin-bottom:0;border-top:1px solid rgba(255,255,255,.07);}
+.prop-stat{flex:1;padding:12px 8px;text-align:center;border-right:1px solid rgba(255,255,255,.07);}
+.prop-stat:last-child{border-right:none;}
+.prop-stat-val{font-family:'Baloo 2',cursive;font-size:17px;font-weight:700;color:var(--orange);}
+.prop-stat-lbl{font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-top:1px;}
+
+/* Category tabs */
+.prop-tabs-wrap{background:#fff;border-bottom:1px solid #e8e4de;padding:0 16px;position:sticky;top:57px;z-index:50;overflow-x:auto;display:flex;gap:0;scrollbar-width:none;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.prop-tabs-wrap::-webkit-scrollbar{display:none;}
+.prop-tab{flex-shrink:0;padding:14px 16px;font-size:13px;font-weight:600;color:#8a8a9a;border-bottom:2.5px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:6px;background:none;border-top:none;border-left:none;border-right:none;font-family:'Noto Sans',sans-serif;}
+.prop-tab:hover{color:var(--navy);}
+.prop-tab.active{color:var(--orange);border-bottom-color:var(--orange);}
+.prop-tab-icon{font-size:14px;}
+.prop-tab-count{background:var(--orange-light);color:var(--orange);font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;}
+.prop-tab.active .prop-tab-count{background:var(--orange);color:#fff;}
+
+/* Filters panel */
+.prop-filters-panel{background:#fff;margin:14px 14px 0;border-radius:18px;padding:16px;border:1px solid #e8e4de;box-shadow:0 4px 16px rgba(0,0,0,.04);}
+.prop-filter-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.prop-filter-clear{font-size:11px;color:var(--orange);cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0;}
+
+/* Price chips */
+.prop-price-chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;}
+.prop-price-chip{border:1.5px solid #e8e4de;background:#faf9f7;border-radius:999px;padding:7px 13px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .18s;white-space:nowrap;}
+.prop-price-chip:hover{border-color:var(--orange);color:var(--orange);}
+.prop-price-chip.active{background:var(--orange);color:#fff;border-color:var(--orange);box-shadow:0 4px 12px rgba(255,107,53,.25);}
+
+/* Custom price row */
+.prop-price-custom{display:flex;gap:8px;align-items:center;margin-top:4px;}
+.prop-price-inp{flex:1;border:1.5px solid #e8e4de;border-radius:10px;padding:9px 12px;font-size:13px;outline:none;font-family:'Noto Sans',sans-serif;background:#faf9f7;color:var(--text);transition:border-color .15s;}
+.prop-price-inp:focus{border-color:var(--orange);}
+.prop-price-apply{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .18s;white-space:nowrap;}
+.prop-price-apply:hover{background:var(--orange);}
+
+/* Active filter badge */
+.prop-active-filter{display:inline-flex;align-items:center;gap:6px;background:var(--orange-light);color:var(--orange);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600;margin-top:10px;}
+.prop-active-filter-close{cursor:pointer;font-size:14px;opacity:.7;}
+.prop-active-filter-close:hover{opacity:1;}
+
+/* Search bar */
+.prop-search-wrap{margin:14px 14px 0;position:relative;}
+.prop-search-inp{width:100%;border:1.5px solid #e8e4de;border-radius:14px;padding:12px 16px 12px 42px;font-size:14px;background:#fff;color:var(--text);font-family:'Noto Sans',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.prop-search-inp:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,107,53,.1);}
+.prop-search-inp::placeholder{color:#b0acaa;}
+.prop-search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;}
+
+/* Results meta bar */
+.prop-results-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 0;}
+.prop-results-count{font-family:'Baloo 2',cursive;font-size:16px;color:var(--navy);}
+.prop-results-count span{color:var(--orange);}
+.prop-results-sort{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;}
+
+/* Section heading */
+.prop-section-head{padding:20px 16px 10px;display:flex;align-items:center;gap:10px;}
+.prop-section-icon{width:32px;height:32px;border-radius:9px;background:var(--orange-light);display:flex;align-items:center;justify-content:center;font-size:16px;}
+.prop-section-label{font-family:'Baloo 2',cursive;font-size:17px;font-weight:700;color:var(--navy);}
+.prop-section-badge{background:var(--navy);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;}
+
+/* Property card — PREMIUM */
+.prop-card{background:#fff;border-radius:20px;overflow:hidden;border:1px solid #e8e4de;cursor:pointer;transition:transform .22s,box-shadow .22s,border-color .22s;animation:cardPop .35s ease both;margin:0 14px 14px;box-shadow:0 4px 16px rgba(18,25,44,.06);}
+.prop-card:hover{transform:translateY(-4px) scale(1.01);box-shadow:0 14px 32px rgba(18,25,44,.12);border-color:rgba(255,107,53,.25);}
+.prop-card:active{transform:scale(.98);}
+
+/* Card media */
+.prop-card-media{position:relative;height:190px;background:linear-gradient(135deg,#e8e3d8 0%,#d5e8e4 100%);overflow:hidden;}
+.prop-card-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease;}
+.prop-card:hover .prop-card-media img{transform:scale(1.04);}
+.prop-card-media-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#ece7dc,#ddeae8);}
+.prop-card-media-placeholder-icon{font-size:44px;opacity:.6;}
+.prop-card-media-placeholder-text{font-size:12px;color:var(--muted);font-weight:500;}
+.prop-card-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(18,25,44,.75) 100%);}
+.prop-card-price-block{position:absolute;bottom:12px;left:14px;right:14px;display:flex;align-items:flex-end;justify-content:space-between;}
+.prop-card-price{font-family:'Baloo 2',cursive;font-size:24px;font-weight:700;color:#fff;line-height:1;text-shadow:0 2px 8px rgba(0,0,0,.3);}
+.prop-card-price-sub{font-size:11px;color:rgba(255,255,255,.7);font-family:'Noto Sans',sans-serif;margin-top:1px;}
+
+/* Card badges */
+.prop-card-badges{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:6px;flex-wrap:wrap;}
+.prop-card-badge{padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.01em;backdrop-filter:blur(10px);}
+.prop-card-badge.type{background:rgba(18,25,44,.82);color:#fff;}
+.prop-card-badge.price-rq{background:rgba(255,255,255,.9);color:var(--navy);}
+.prop-card-badge.verified{background:rgba(10,191,163,.88);color:#fff;}
+
+/* Fav button */
+.prop-card-fav{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:transform .2s,background .2s;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.prop-card-fav:hover{transform:scale(1.15);background:#fff;}
+
+/* Card body */
+.prop-card-body{padding:14px;}
+.prop-card-name{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prop-card-loc{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);margin-bottom:10px;}
+.prop-card-loc svg{width:12px;height:12px;stroke:var(--orange);fill:none;stroke-width:2;flex-shrink:0;}
+.prop-card-meta{display:flex;gap:6px;flex-wrap:wrap;}
+.prop-card-chip{display:inline-flex;align-items:center;gap:4px;background:#f5f3ef;color:var(--navy);border-radius:8px;padding:5px 9px;font-size:11px;font-weight:600;}
+.prop-card-chip.highlight{background:var(--orange-light);color:var(--orange);}
+.prop-card-chip.teal{background:var(--teal-light);color:var(--teal-dark);}
+
+/* Card CTA row */
+.prop-card-cta{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #f0ede8;}
+.prop-card-btn{flex:1;padding:9px 0;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;text-align:center;transition:all .18s;}
+.prop-card-btn.primary{background:var(--orange);color:#fff;border:none;box-shadow:0 4px 10px rgba(255,107,53,.25);}
+.prop-card-btn.primary:hover{background:#e5561e;box-shadow:0 6px 14px rgba(255,107,53,.35);}
+.prop-card-btn.secondary{background:transparent;color:var(--navy);border:1.5px solid #e0dcd6;}
+.prop-card-btn.secondary:hover{border-color:var(--navy);background:#f7f5f0;}
+
+/* Empty state */
+.prop-empty{text-align:center;padding:50px 24px;animation:fadeIn .4s ease;}
+.prop-empty-icon{font-size:54px;margin-bottom:14px;opacity:.6;}
+.prop-empty-title{font-family:'Baloo 2',cursive;font-size:22px;font-weight:700;color:var(--navy);margin-bottom:8px;}
+.prop-empty-sub{font-size:13px;color:var(--muted);line-height:1.6;max-width:30ch;margin:0 auto 20px;}
+.prop-empty-btn{background:var(--orange);color:#fff;border:none;border-radius:999px;padding:13px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;box-shadow:0 6px 18px rgba(255,107,53,.28);transition:all .18s;}
+.prop-empty-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(255,107,53,.34);}
+
+/* Skeleton loader */
+.prop-skeleton{background:#fff;border-radius:20px;overflow:hidden;margin:0 14px 14px;border:1px solid #e8e4de;}
+.prop-skeleton-media{height:190px;background:linear-gradient(90deg,#f0ede8 25%,#e8e4de 40%,#f0ede8 55%);background-size:200% 100%;animation:shimmerLoad 1.5s linear infinite;}
+.prop-skeleton-body{padding:14px;display:flex;flex-direction:column;gap:9px;}
+.prop-skeleton-line{height:13px;border-radius:999px;background:linear-gradient(90deg,#f0ede8 25%,#e8e4de 40%,#f0ede8 55%);background-size:200% 100%;animation:shimmerLoad 1.5s linear infinite;}
+.prop-skeleton-line.s{width:35%;}
+.prop-skeleton-line.m{width:58%;}
+.prop-skeleton-line.l{width:82%;}
+
+/* Property section list */
+.property-section-list{display:flex;flex-direction:column;gap:0;}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 480px) {
+  .prop-hero-title{font-size:22px;}
+  .prop-card-price{font-size:20px;}
+  .prop-card-media{height:170px;}
+}
+
 /* Nearest badge */
 .nearest-badge{display:inline-block;background:linear-gradient(135deg,var(--orange),#ff9a5c);color:#fff;font-size:9px;font-weight:600;padding:2px 7px;border-radius:999px;margin-left:6px;animation:pulse 2s ease-in-out infinite;}
 
@@ -236,6 +387,98 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
 .room-price-v{font-family:'Baloo 2',cursive;font-size:15px;font-weight:700;color:var(--orange);}
 .room-name-v{font-size:12px;font-weight:500;margin:2px 0;}
 .room-loc-v{font-size:11px;color:var(--muted);}
+.rooms-shell{padding:18px 16px 28px;display:flex;flex-direction:column;gap:16px;}
+.rooms-hero{background:linear-gradient(135deg,#12192C 0%,#1f2d4f 58%,#0ABFA3 140%);border-radius:24px;padding:22px 18px;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:16px;}
+.rooms-hero::before{content:'';position:absolute;right:-36px;top:-42px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.24) 0%,rgba(255,255,255,0) 72%);}
+.rooms-hero::after{content:'';position:absolute;left:-28px;bottom:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,53,.38) 0%,rgba(255,107,53,0) 72%);}
+.rooms-eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.62);margin-bottom:8px;}
+.rooms-page-title{font-family:'Baloo 2',cursive;font-size:32px;line-height:1;margin-bottom:6px;}
+.rooms-page-sub{font-size:13px;line-height:1.6;color:rgba(255,255,255,.78);max-width:32ch;}
+.rooms-hero-cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:var(--navy);border:none;border-radius:999px;padding:11px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:transform .18s,box-shadow .18s;box-shadow:0 8px 20px rgba(18,25,44,.2);}
+.rooms-hero-cta:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(18,25,44,.24);}
+.room-filter-tabs{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.room-filter-tabs::-webkit-scrollbar{display:none;}
+.room-tab{border:none;border-radius:999px;padding:10px 16px;background:rgba(18,25,44,.06);color:var(--muted);font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer;transition:transform .18s,background .18s,color .18s,box-shadow .18s;}
+.room-tab:hover{transform:translateY(-1px);color:var(--navy);}
+.room-tab.active{background:var(--navy);color:#fff;box-shadow:0 10px 18px rgba(18,25,44,.14);}
+.room-filters-panel{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:16px;box-shadow:0 12px 30px rgba(18,25,44,.05);}
+.room-filter-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.room-filter-title{font-family:'Baloo 2',cursive;font-size:20px;font-weight:700;color:var(--navy);}
+.room-filter-sub{font-size:12px;color:var(--muted);}
+.room-filter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.room-filter-block{padding:14px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(180deg,#fff 0%,#fbfaf7 100%);}
+.room-filter-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.room-price-values{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
+.room-price-pill{background:var(--orange-light);color:var(--orange);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700;}
+.room-price-options{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.room-price-option{border:1px solid var(--border);background:#fff;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .18s;text-align:left;}
+.room-price-option:hover{transform:translateY(-1px);border-color:rgba(255,107,53,.35);}
+.room-price-option.active{background:var(--orange-light);color:var(--orange);border-color:var(--orange);}
+.room-price-custom{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+.room-price-custom-inputs{display:flex;gap:8px;flex:1;}
+.room-price-custom input[type=number]{flex:1;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;outline:none;}
+.room-price-custom input[type=number]:focus{border-color:var(--orange);}
+.room-price-apply{background:var(--teal);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s;}
+.room-price-apply:hover{background:#089a8a;}
+.room-price-active-filter{background:var(--orange-light);color:var(--orange);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.room-price-caption{font-size:11px;color:var(--muted);margin-top:10px;}
+.room-toggle-row{display:flex;gap:10px;flex-wrap:wrap;}
+.room-toggle{border:1px solid var(--border);background:#fff;border-radius:14px;padding:10px 12px;display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .18s;}
+.room-toggle:hover{transform:translateY(-1px);border-color:rgba(10,191,163,.35);}
+.room-toggle.active{background:var(--teal-light);color:var(--teal);border-color:rgba(10,191,163,.45);}
+.room-results-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.room-results-count{font-family:'Baloo 2',cursive;font-size:19px;color:var(--navy);}
+.room-results-hint{font-size:12px;color:var(--muted);}
+.rooms-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+.room-card-rich{background:var(--card);border:1px solid var(--border);border-radius:22px;overflow:hidden;cursor:pointer;box-shadow:0 10px 28px rgba(18,25,44,.05);transition:transform .22s,box-shadow .22s,border-color .22s;opacity:0;animation:roomFade .4s ease forwards;}
+.room-card-rich:hover{transform:translateY(-4px) scale(1.01);box-shadow:0 18px 34px rgba(18,25,44,.12);border-color:rgba(10,191,163,.25);}
+.room-card-media{position:relative;aspect-ratio:4/3;background:linear-gradient(135deg,#ece6dc 0%,#d9eef0 100%);overflow:hidden;}
+.room-card-media img{width:100%;height:100%;object-fit:cover;display:block;}
+.room-card-overlay{position:absolute;left:0;right:0;bottom:0;padding:16px 14px 12px;background:linear-gradient(180deg,rgba(18,25,44,0) 0%,rgba(18,25,44,.84) 100%);}
+.room-card-price{font-family:'Baloo 2',cursive;font-size:28px;line-height:1;color:#fff;}
+.room-card-price span{font-family:'Noto Sans',sans-serif;font-size:12px;color:rgba(255,255,255,.72);}
+.room-card-badge-row{position:absolute;left:14px;top:14px;display:flex;gap:8px;flex-wrap:wrap;}
+.room-card-badge{padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700;backdrop-filter:blur(8px);}
+.room-card-badge.type{background:rgba(18,25,44,.82);color:#fff;}
+.room-card-badge.available{background:rgba(255,255,255,.88);color:var(--navy);}
+.room-card-body{padding:14px;display:flex;flex-direction:column;gap:12px;}
+.room-card-location{font-size:14px;font-weight:700;color:var(--navy);}
+.room-card-address{font-size:12px;line-height:1.5;color:var(--muted);}
+.room-amenity-icons{display:flex;gap:8px;flex-wrap:wrap;}
+.room-amenity-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:#f7f5f0;color:var(--navy);font-size:11px;font-weight:700;}
+.room-amenity-chip.dim{color:var(--muted);}
+.room-card-pin{font-size:11px;color:var(--muted);}
+.room-card-pin strong{color:var(--navy);}
+.rooms-empty{background:var(--card);border:1px dashed rgba(18,25,44,.18);border-radius:24px;padding:34px 22px;text-align:center;color:var(--muted);}
+.rooms-empty-emoji{font-size:40px;margin-bottom:8px;}
+.rooms-empty-title{font-family:'Baloo 2',cursive;font-size:26px;line-height:1.05;color:var(--navy);margin-bottom:10px;}
+.rooms-empty-sub{font-size:13px;line-height:1.6;max-width:36ch;margin:0 auto 18px;}
+.rooms-empty-btn{background:var(--orange);color:#fff;border:none;border-radius:999px;padding:12px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:transform .18s,box-shadow .18s;box-shadow:0 10px 18px rgba(255,107,53,.22);}
+.rooms-empty-btn:hover{transform:translateY(-2px);box-shadow:0 14px 24px rgba(255,107,53,.26);}
+.rooms-filter-empty{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 24px;text-align:center;color:var(--muted);opacity:0;animation:fadeInEmpty 0.5s ease forwards;margin:20px 0;}
+.rooms-filter-empty-icon{font-size:48px;margin-bottom:16px;opacity:0.6;}
+.rooms-filter-empty-title{font-family:'Baloo 2',cursive;font-size:24px;line-height:1.2;color:var(--navy);margin-bottom:12px;}
+.rooms-filter-empty-subtitle{font-size:14px;line-height:1.5;max-width:32ch;margin:0 auto 24px;}
+.rooms-filter-empty-btn{background:var(--teal);color:#fff;border:none;border-radius:12px;padding:14px 24px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Noto Sans',sans-serif;transition:all .2s;}
+.rooms-filter-empty-btn:hover{background:var(--teal-dark);transform:translateY(-1px);box-shadow:0 6px 16px rgba(10,191,163,.3);}
+@keyframes fadeInEmpty{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.room-skeleton{border-radius:22px;overflow:hidden;background:#fff;border:1px solid var(--border);}
+.room-skeleton-media{height:220px;background:linear-gradient(90deg,#f5f1ea 25%,#ede8df 37%,#f5f1ea 63%);background-size:400% 100%;animation:shimmer 1.4s linear infinite;}
+.room-skeleton-body{padding:14px;display:flex;flex-direction:column;gap:10px;}
+.room-skeleton-line{height:14px;border-radius:999px;background:linear-gradient(90deg,#f5f1ea 25%,#ede8df 37%,#f5f1ea 63%);background-size:400% 100%;animation:shimmer 1.4s linear infinite;}
+.room-skeleton-line.short{width:38%;}
+.room-skeleton-line.mid{width:64%;}
+.room-skeleton-line.long{width:86%;}
+.room-amenities-picker{display:flex;gap:10px;flex-wrap:wrap;}
+.room-amenity-option{position:relative;}
+.room-amenity-option input{position:absolute;opacity:0;pointer-events:none;}
+.room-amenity-option span{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:14px;background:#fff;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;}
+.room-amenity-option input:checked + span{background:var(--teal-light);color:var(--teal);border-color:rgba(10,191,163,.42);}
+@keyframes roomFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media (max-width:720px){
+  .room-filter-grid{grid-template-columns:1fr;}
+  .rooms-list{grid-template-columns:1fr;}
+}
 
 /* ===== LIST SHOP ===== */
 #list-shop{background:var(--bg);padding-bottom:100px;}
@@ -260,7 +503,25 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
 .pu-icon{font-size:30px;margin-bottom:6px;}
 .photo-upload p{font-size:13px;color:var(--muted);}
 .photo-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
-.photo-thumb{width:60px;height:60px;border-radius:8px;object-fit:cover;border:1px solid var(--border);animation:popIn .3s ease;}
+.photo-thumb{width:72px;height:72px;border-radius:10px;object-fit:cover;border:1px solid var(--border);animation:popIn .3s ease;position:relative;display:inline-block;}
+.photo-thumb-wrap{position:relative;display:inline-block;}
+.photo-thumb-del{position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:#e53e3e;color:#fff;font-size:10px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;padding:0;}
+/* Camera button */
+.camera-btn{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--navy);color:#fff;border:none;border-radius:12px;padding:14px 20px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Baloo 2',cursive;width:100%;transition:all .2s;}
+.camera-btn:hover{background:#1a2540;transform:translateY(-1px);box-shadow:0 6px 16px rgba(18,25,44,.2);}
+.camera-btn:active{transform:scale(.97);}
+.camera-btn svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2;}
+/* Photo counter bar */
+.photo-counter{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding:8px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--border);}
+.photo-counter-dots{display:flex;gap:5px;}
+.photo-dot{width:10px;height:10px;border-radius:50%;background:#e0dcd6;transition:all .2s;}
+.photo-dot.filled{background:var(--teal);}
+.photo-dot.min-met{background:var(--orange);}
+.photo-counter-label{font-size:12px;font-weight:600;color:var(--muted);}
+.photo-counter-label.ok{color:#16a34a;}
+.photo-counter-label.warn{color:var(--orange);}
+/* Min photos notice */
+.photos-notice{font-size:12px;color:var(--muted);line-height:1.6;margin-top:8px;padding:8px 12px;background:#fffbf5;border-radius:8px;border-left:3px solid var(--orange);}
 .submit-btn{background:var(--orange);color:#fff;border:none;border-radius:var(--rsm);padding:14px;font-size:16px;font-weight:600;cursor:pointer;font-family:'Baloo 2',cursive;transition:transform .2s,box-shadow .2s;}
 .submit-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,107,53,.4);}
 .submit-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
@@ -1005,6 +1266,7 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
       <div class="sec-title" id="home-res-title">Nearby Rooms & PG</div>
       <div class="see-all" id="home-see-all" onclick="homeSeeAll()">See all →</div>
     </div>
+    <p style="font-size:13px;color:var(--muted);margin:8px 0 16px 0;line-height:1.5;">Discover real room listings from Firestore with live budget and amenity filters. No placeholders, no fake inventory.</p>
 
     <!-- Rooms view -->
     <div id="home-rooms-wrap">
@@ -1086,38 +1348,147 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
     <div class="user-av" id="av-rooms" onclick="switchScreen('profile')" title="My Profile">U</div>
   </div>
   <div style="padding:12px 16px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;">
-    <div class="filter-pill active">All</div>
-    <div class="filter-pill">🏠 1BHK</div>
-    <div class="filter-pill">🛏️ PG</div>
-    <div class="filter-pill">👥 Flat Share</div>
-    <div class="filter-pill">₹ &lt;3000</div>
-    <div class="filter-pill">📶 WiFi</div>
-    <div class="filter-pill">❄️ AC</div>
+    <div class="filter-pill active" onclick="applyRoomTypeFilter(this, 'All')">All</div>
+    <div class="filter-pill" onclick="applyRoomTypeFilter(this, '1BHK')">🏠 1BHK</div>
+    <div class="filter-pill" onclick="applyRoomTypeFilter(this, 'PG')">🛏️ PG</div>
+    <div class="filter-pill" onclick="applyRoomTypeFilter(this, 'Flat Share')">👥 Flat Share</div>
+    <div class="filter-pill" onclick="setRoomPriceFilter('under-3000')">₹ &lt;3000</div>
+    <div class="filter-pill" onclick="toggleRoomAmenityFilter('WiFi')">📶 WiFi</div>
+    <div class="filter-pill" onclick="toggleRoomAmenityFilter('AC')">❄️ AC</div>
   </div>
-  <div class="rooms-grid"></div>
+  <div class="rooms-shell">
+    <div class="rooms-hero">
+      <div>
+        <div class="rooms-eyebrow">Verified rental feed</div>
+        <div class="rooms-page-title">Rooms &amp; PG</div>
+        <div class="rooms-page-sub"></div>
+      </div>
+      <div>
+        <button class="rooms-hero-cta" onclick="switchScreen('list-shop')">+ List your room</button>
+      </div>
+    </div>
+    <div id="room-filters-host"></div>
+    <div class="room-results-meta">
+      <div class="room-results-count" id="rooms-results-count">0 listings</div>
+      <div class="room-results-hint" id="rooms-results-hint">Live query from Firestore</div>
+    </div>
+    <div id="rooms-loading" class="rooms-list" style="display:none;"></div>
+    <div id="rooms-list" class="rooms-list"></div>
+    <div id="rooms-filter-empty" class="rooms-filter-empty" style="display:none;">
+      <div class="rooms-filter-empty-icon">🏠</div>
+      <div class="rooms-filter-empty-title">No rooms match your filters 👀</div>
+      <div class="rooms-filter-empty-subtitle">Try changing your budget or room type to see more options</div>
+      <button class="rooms-filter-empty-btn" onclick="resetRoomFilters()">Reset Filters</button>
+    </div>
+  </div>
 </div>
 
 <!-- PROPERTIES SCREEN -->
 <div id="properties" class="screen">
+  <!-- Topbar -->
   <div class="topbar">
     <div class="topbar-back">
       <button class="back-btn" onclick="goBack()">←</button>
-      <div class="topbar-logo"><div class="topbar-logo-icon">📍</div><div class="topbar-logo-text">Near<span>by</span></div></div>
+      <div class="topbar-logo"><div class="topbar-logo-icon">🏠</div><div class="topbar-logo-text">Near<span>by</span></div></div>
     </div>
     <div class="user-av" id="av-properties" onclick="switchScreen('profile')" title="My Profile">U</div>
   </div>
-  <div class="section" style="padding-bottom:20px;">
-    <div id="property-filters-host"></div>
-    <div class="sec-header">
-      <div class="sec-title" id="property-title">Properties For Sale Near You</div>
-      <div style="font-size:12px;color:var(--muted);" id="property-hint">Showing all property types</div>
+
+  <!-- Hero Header -->
+  <div class="prop-hero">
+    <div class="prop-hero-inner">
+      <div class="prop-eyebrow">
+        <div class="prop-eyebrow-dot"></div>
+        <div class="prop-eyebrow-text">Real Estate Listings</div>
+      </div>
+      <div class="prop-hero-title" id="property-title">Properties for <span>Sale</span> Near You</div>
+      <div class="prop-hero-sub">Find land, houses, apartments, and commercial properties near your location</div>
     </div>
-    <div class="shop-list" id="properties-list"></div>
-    <div id="properties-empty" style="display:none;text-align:center;padding:30px 20px;color:var(--muted);">
-      <div style="font-size:40px;margin-bottom:10px;">🏠</div>
-      <div style="font-size:15px;font-weight:500;margin-bottom:6px;" id="properties-empty-title">No properties listed yet</div>
-      <div style="font-size:12px;margin-bottom:14px;" id="properties-empty-sub">Property listings will appear here automatically when owners add them.</div>
-      <button onclick="switchScreen('list-shop')" style="background:var(--orange);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;cursor:pointer;font-family:'Noto Sans',sans-serif;font-weight:600;">+ List Property</button>
+    <!-- Stats strip -->
+    <div class="prop-stats">
+      <div class="prop-stat">
+        <div class="prop-stat-val" id="prop-stat-total">—</div>
+        <div class="prop-stat-lbl">Listings</div>
+      </div>
+      <div class="prop-stat">
+        <div class="prop-stat-val" id="prop-stat-types">5</div>
+        <div class="prop-stat-lbl">Types</div>
+      </div>
+      <div class="prop-stat">
+        <div class="prop-stat-val" id="prop-stat-new">Live</div>
+        <div class="prop-stat-lbl">Updates</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Tabs -->
+  <div class="prop-tabs-wrap" id="prop-type-tabs">
+    <button class="prop-tab active" data-type="All" onclick="setPropertyTypeFilter('All')">
+      <span class="prop-tab-icon">🗂️</span> All
+    </button>
+    <button class="prop-tab" data-type="land" onclick="setPropertyTypeFilter('land')">
+      <span class="prop-tab-icon">🌿</span> Land
+    </button>
+    <button class="prop-tab" data-type="apartment" onclick="setPropertyTypeFilter('apartment')">
+      <span class="prop-tab-icon">🏢</span> Apartment
+    </button>
+    <button class="prop-tab" data-type="house" onclick="setPropertyTypeFilter('house')">
+      <span class="prop-tab-icon">🏠</span> House
+    </button>
+    <button class="prop-tab" data-type="commercial" onclick="setPropertyTypeFilter('commercial')">
+      <span class="prop-tab-icon">🏪</span> Commercial
+    </button>
+    <button class="prop-tab" data-type="other" onclick="setPropertyTypeFilter('other')">
+      <span class="prop-tab-icon">📦</span> Other
+    </button>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="prop-search-wrap">
+    <span class="prop-search-icon">🔍</span>
+    <input class="prop-search-inp" type="text" id="property-search" placeholder="Search by name, city, pincode..." oninput="setPropertySearchQuery(this.value)" />
+  </div>
+
+  <!-- Filters Panel -->
+  <div class="prop-filters-panel">
+    <div class="prop-filter-title">
+      Filter by Budget
+      <span class="prop-filter-clear" id="prop-filter-clear-btn" onclick="clearPropertyFilters()" style="display:none;">Clear All</span>
+    </div>
+    <div class="prop-price-chips">
+      <div class="prop-price-chip" data-filter="under-5l" onclick="setPropertyPriceFilter('under-5l')">Under ₹5L</div>
+      <div class="prop-price-chip" data-filter="5l-20l" onclick="setPropertyPriceFilter('5l-20l')">₹5L – ₹20L</div>
+      <div class="prop-price-chip" data-filter="20l-50l" onclick="setPropertyPriceFilter('20l-50l')">₹20L – ₹50L</div>
+      <div class="prop-price-chip" data-filter="50l-1cr" onclick="setPropertyPriceFilter('50l-1cr')">₹50L – ₹1Cr</div>
+      <div class="prop-price-chip" data-filter="above-1cr" onclick="setPropertyPriceFilter('above-1cr')">Above ₹1Cr</div>
+    </div>
+    <div class="prop-price-custom">
+      <input class="prop-price-inp" type="number" id="property-price-min" placeholder="Min ₹" min="0" />
+      <input class="prop-price-inp" type="number" id="property-price-max" placeholder="Max ₹" min="0" />
+      <button class="prop-price-apply" onclick="applyCustomPropertyPrice()">Apply</button>
+    </div>
+    <div id="prop-active-filter-badge" style="display:none;" class="prop-active-filter">
+      <span id="prop-active-filter-label"></span>
+      <span class="prop-active-filter-close" onclick="clearPropertyPriceFilter()">✕</span>
+    </div>
+  </div>
+
+  <!-- Results Meta bar -->
+  <div class="prop-results-bar">
+    <div class="prop-results-count"><span id="prop-count">0</span> listings found</div>
+    <div class="prop-results-sort" id="property-hint">All types</div>
+  </div>
+
+  <!-- Property List -->
+  <div id="properties-list" style="padding-top:6px;"></div>
+
+  <!-- Empty State -->
+  <div id="properties-empty" style="display:none;">
+    <div class="prop-empty">
+      <div class="prop-empty-icon">🏠</div>
+      <div class="prop-empty-title" id="properties-empty-title">No properties available 👀</div>
+      <div class="prop-empty-sub" id="properties-empty-sub">Be the first to list a property in this area</div>
+      <button class="prop-empty-btn" onclick="switchScreen('list-shop')">+ List Your Property</button>
     </div>
   </div>
 </div>
@@ -1168,9 +1539,28 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
     </div>
     <div class="form-group"><div class="form-label">Opening Hours</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><input class="form-inp" id="f-open" type="time"/><input class="form-inp" id="f-close" type="time"/></div></div>
     <div class="form-group">
-      <div class="form-label">Business Photos * (minimum 2)</div>
-      <div class="photo-upload" onclick="document.getElementById('photo-inp').click()"><div class="pu-icon">📸</div><p>Upload at least 2 clear real photos of your business</p></div>
-      <input type="file" id="photo-inp" accept="image/*" multiple style="display:none" onchange="prevPhotos(this)"/>
+      <div class="form-label">Shop Photos * (minimum 5 required)</div>
+      <!-- Camera button — opens device camera directly -->
+      <button type="button" class="camera-btn" onclick="document.getElementById('photo-inp').click()">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        📷 Click Photo from Camera
+      </button>
+      <!-- Camera-only input: capture="environment" forces rear camera on mobile -->
+      <input type="file" id="photo-inp" accept="image/*" capture="environment" style="display:none" onchange="addCameraPhoto(this)"/>
+      <!-- Progress dots + count -->
+      <div class="photo-counter" id="photo-counter">
+        <div class="photo-counter-dots" id="photo-dots">
+          <div class="photo-dot" id="dot-1"></div>
+          <div class="photo-dot" id="dot-2"></div>
+          <div class="photo-dot" id="dot-3"></div>
+          <div class="photo-dot" id="dot-4"></div>
+          <div class="photo-dot" id="dot-5"></div>
+        </div>
+        <div class="photo-counter-label warn" id="photo-count-label">0 / 5 photos</div>
+      </div>
+      <!-- Notice -->
+      <div class="photos-notice">📌 Click real photos of your actual shop or location from your camera. Upload option is disabled to ensure authentic listings.</div>
+      <!-- Preview grid -->
       <div class="photo-preview" id="photo-prev"></div>
     </div>
     <div class="form-group"><div class="form-label">Business Description * (minimum 20 characters)</div><textarea class="form-inp" id="f-info" rows="3" placeholder="Tell users clearly what you offer, timings, speciality, services..."></textarea></div>
@@ -1666,18 +2056,24 @@ let pickedLoc     = null;
 let allShops      = [];
 let roomListings  = [];
 let roomListingsUnsub = null;
+let roomListingsLoading = false;
 let activeRoomType = 'All';
-let activeRoomRent = 'all';
-let activeRoomAmenity = 'all';
-let activeRoomPriceMin = '';
-let activeRoomPriceMax = '';
+let activeRoomAmenities = [];
+let roomPriceBounds = { min: 0, max: 50000 };
+let activeRoomPriceFilter = null; // null, 'under-3000', '3000-5000', '5000-10000', '10000-20000', 'above-20000', or 'custom'
+let activeRoomPriceMin = 0;
+let activeRoomPriceMax = 50000;
+let hasTouchedRoomPrice = false;
 let propertyListings = [];
 let propertyListingsUnsub = null;
 let activePropertyType = 'All';
-let activePropertyPriceMin = '';
-let activePropertyPriceMax = '';
+let activePropertyPriceFilter = null; // 'under-5l', '5l-20l', '20l-50l', '50l-1cr', 'above-1cr', 'custom'
+let activePropertyPriceMin = 0;
+let activePropertyPriceMax = 0;
+let propertySearchQuery = ''; // Search by name, location, pincode
 
 const ROOM_PROPERTY_TYPES = ['1BHK','2BHK','3BHK','PG','Flat Share'];
+const ROOM_FILTER_AMENITIES = ['WiFi','AC'];
 
 function normalizeRoomPropertyType(value) {
   const raw = String(value || '').trim().toLowerCase();
@@ -1688,6 +2084,16 @@ function normalizeRoomPropertyType(value) {
   if (raw === 'pg') return 'PG';
   if (raw === 'flat share' || raw === 'flatshare') return 'Flat Share';
   return value;
+}
+
+function normalizePropertyType(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw) return '';
+  if (raw === 'land') return 'land';
+  if (raw === 'house') return 'house';
+  if (raw === 'apartment') return 'apartment';
+  if (raw === 'commercial') return 'commercial';
+  return String(value).trim();
 }
 
 const SCREENS = ['login','home','rooms','properties','shops','list-shop','profile','explore','edit-profile','shop-detail','admin','tracking','payment'];
@@ -1715,6 +2121,7 @@ auth.onAuthStateChanged(user => {
     switchScreen('home');
     renderShopLists();
     loadFirestoreShops();
+    loadRoomPriceBounds();
     loadRoomListings();
     loadPropertyListings();
     clearLocationCache();
@@ -1727,7 +2134,9 @@ auth.onAuthStateChanged(user => {
       if (!restored) {
         // No session at all — show login
         document.getElementById('bnav').style.display = 'none';
+        screenHistory = ['login'];
         switchScreen('login');
+        goStep('step-choose');
       }
     }
   }
@@ -2158,6 +2567,9 @@ function _onMfaLoginSuccess(user) {
   switchScreen('home');
   renderShopLists();
   loadFirestoreShops();
+  loadRoomPriceBounds();
+  loadRoomListings();
+  loadPropertyListings();
   clearLocationCache();
   setTimeout(() => LocSystem.init(), 600);
   // Show admin menu item if user is admin
@@ -2298,6 +2710,7 @@ async function doLogout() {
   clearUserSession();
   toast('Logged out successfully', 'ok');
   document.getElementById('bnav').style.display = 'none';
+  screenHistory = ['login'];
   switchScreen('login');
   goStep('step-choose');
 }
@@ -2502,84 +2915,175 @@ function isRoomCategory(cat = '') {
 }
 
 function getRoomListings() {
-  return sortByDistance(roomListings.length ? roomListings : allShops.filter(s => isRoomCategory(s.cat || s.category)));
+  return sortByDistance(roomListings);
 }
 
 function applyRoomFiltersToQuery(ref) {
   let query = ref.where('active', '==', true);
   if (activeRoomType !== 'All') query = query.where('propertyType', '==', normalizeRoomPropertyType(activeRoomType));
-  if (activeRoomAmenity !== 'all') query = query.where('amenities', 'array-contains', activeRoomAmenity);
-  const minPrice = activeRoomPriceMin !== '' ? Number(activeRoomPriceMin) : null;
-  const maxPrice = activeRoomPriceMax !== '' ? Number(activeRoomPriceMax) : null;
-  if (minPrice !== null && !Number.isNaN(minPrice)) query = query.where('price', '>=', minPrice);
-  if (maxPrice !== null && !Number.isNaN(maxPrice)) query = query.where('price', '<=', maxPrice);
-  else if (activeRoomRent === 'under_5000') query = query.where('price', '<=', 5000);
-  else if (activeRoomRent === '5000_10000') query = query.where('price', '>=', 5000).where('price', '<=', 10000);
-  else if (activeRoomRent === 'above_10000') query = query.where('price', '>=', 10000);
-  query = query.orderBy('price', 'asc');
-  return query.limit(50);
+  if (activeRoomAmenities.length) query = query.where('amenities', 'array-contains', activeRoomAmenities[0]);
+  
+  // Apply price filter
+  if (activeRoomPriceFilter) {
+    switch (activeRoomPriceFilter) {
+      case 'under-3000':
+        query = query.where('rent', '<=', 3000);
+        break;
+      case '3000-5000':
+        query = query.where('rent', '>=', 3000).where('rent', '<=', 5000);
+        break;
+      case '5000-10000':
+        query = query.where('rent', '>=', 5000).where('rent', '<=', 10000);
+        break;
+      case '10000-20000':
+        query = query.where('rent', '>=', 10000).where('rent', '<=', 20000);
+        break;
+      case 'above-20000':
+        query = query.where('rent', '>=', 20000);
+        break;
+      case 'custom':
+        if (Number.isFinite(activeRoomPriceMin) && activeRoomPriceMin > 0 && Number.isFinite(activeRoomPriceMax) && activeRoomPriceMax > 0) {
+          // Can't do both min and max in Firestore, so we'll filter client-side for this case
+          query = query.orderBy('rent', 'asc');
+        } else if (Number.isFinite(activeRoomPriceMin) && activeRoomPriceMin > 0) {
+          query = query.where('rent', '>=', activeRoomPriceMin);
+        } else if (Number.isFinite(activeRoomPriceMax) && activeRoomPriceMax > 0) {
+          query = query.where('rent', '<=', activeRoomPriceMax);
+        }
+        break;
+    }
+  }
+  
+  query = query.orderBy('rent', 'asc');
+  return query.limit(24);
+}
+
+async function loadRoomPriceBounds() {
+  try {
+    const minSnapPromise = db.collection('rooms').where('active', '==', true).orderBy('rent', 'asc').limit(1).get();
+    const maxSnapPromise = db.collection('rooms').where('active', '==', true).orderBy('rent', 'desc').limit(1).get();
+    const [minSnap, maxSnap] = await Promise.all([minSnapPromise, maxSnapPromise]);
+    const minDoc = minSnap.docs[0];
+    const maxDoc = maxSnap.docs[0];
+    if (!minDoc || !maxDoc) {
+      roomPriceBounds = { min: 0, max: 50000 };
+      renderRoomSections();
+      return;
+    }
+    const nextMin = Math.max(0, Number(minDoc.data().rent) || 0);
+    const nextMax = Math.max(nextMin, Number(maxDoc.data().rent) || nextMin);
+    roomPriceBounds = { min: nextMin, max: nextMax };
+    renderRoomSections();
+  } catch (e) {
+    roomPriceBounds = { min: 0, max: 50000 };
+    renderRoomSections();
+    console.log('Price bounds:', e.message);
+  }
 }
 
 function loadRoomListings() {
   try {
     if (roomListingsUnsub) roomListingsUnsub();
-    roomListingsUnsub = applyRoomFiltersToQuery(db.collection('properties')).onSnapshot(snap => {
+    roomListingsLoading = true;
+    renderRoomSections();
+    roomListingsUnsub = applyRoomFiltersToQuery(db.collection('rooms')).onSnapshot(snap => {
       const next = [];
       snap.forEach(doc => {
         const s = doc.data();
         const loc = s.location;
+        const rent = Number(s.rent);
         next.push({
           id: doc.id,
-          name: s.name,
+          name: s.name || `${normalizeRoomPropertyType(s.propertyType || '') || 'Room'} listing`,
           cat: s.category || 'Room / PG',
           icon: catIcon('Room / PG'),
-          phone: s.phone,
+          phone: s.phone || '',
           address: s.address,
-          hours: s.hours,
           lat: loc ? loc.latitude : s.lat || null,
           lng: loc ? loc.longitude : s.lng || null,
           distKm: 0,
           ownerId: s.ownerId || '',
-          owner: s.owner || '',
+          owner: s.ownerName || s.owner || '',
           ownerEmail: s.ownerEmail || '',
-          photos: s.photos || s.images || [],
-          info: s.info || '',
+          photos: s.images || s.photos || [],
+          images: s.images || s.photos || [],
+          info: s.description || s.info || '',
           trustScore: s.trustScore || 100,
+          pincode: s.pincode || '',
           propertyType: normalizeRoomPropertyType(s.propertyType || ''),
-          price: s.price || null,
-          area: s.area || null,
-          amenities: s.amenities || []
+          rent: Number.isFinite(rent) ? rent : null,
+          price: Number.isFinite(rent) ? rent : null,
+          availableFor: s.availableFor || '',
+          amenities: Array.isArray(s.amenities) ? s.amenities : []
         });
       });
-      roomListings = next;
+      let filteredListings = next;
+      
+      // Apply client-side filtering for custom price range (when both min and max are set)
+      if (activeRoomPriceFilter === 'custom' && Number.isFinite(activeRoomPriceMin) && activeRoomPriceMin > 0 && Number.isFinite(activeRoomPriceMax) && activeRoomPriceMax > 0) {
+        filteredListings = filteredListings.filter(item => {
+          const rent = item.rent;
+          return rent >= activeRoomPriceMin && rent <= activeRoomPriceMax;
+        });
+      }
+      
+      roomListings = activeRoomAmenities.length > 1
+        ? filteredListings.filter(item => activeRoomAmenities.every(amenity => (item.amenities || []).includes(amenity)))
+        : filteredListings;
+      roomListingsLoading = false;
       renderRoomSections();
       updateRoomCount();
-    }, err => console.log('Properties:', err.message));
+    }, err => {
+      roomListingsLoading = false;
+      renderRoomSections();
+      console.log('Properties:', err.message);
+    });
   } catch (e) {
+    roomListingsLoading = false;
     console.log('Properties:', e.message);
   }
 }
 
 function renderRoomFilterBar() {
   return `
-    <div id="room-filters-host">
-    <div style="padding:12px 16px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;" id="room-type-tabs">
-      ${['All', ...ROOM_PROPERTY_TYPES].map(type => `<div class="filter-pill ${activeRoomType === type ? 'active' : ''}" onclick="setRoomTypeFilter('${type.replace(/'/g, "\\'")}')">${type}</div>`).join('')}
-    </div>
-    <div style="display:flex;gap:8px;padding:12px 16px 0;flex-wrap:wrap;">
-      <select class="form-inp" style="max-width:170px;" onchange="setRoomRentFilter(this.value)">
-        <option value="all" ${activeRoomRent === 'all' ? 'selected' : ''}>All Rents</option>
-        <option value="under_5000" ${activeRoomRent === 'under_5000' ? 'selected' : ''}>Under ₹5,000</option>
-        <option value="5000_10000" ${activeRoomRent === '5000_10000' ? 'selected' : ''}>₹5,000 - ₹10,000</option>
-        <option value="above_10000" ${activeRoomRent === 'above_10000' ? 'selected' : ''}>Above ₹10,000</option>
-      </select>
-      <input class="form-inp" style="max-width:140px;" type="number" min="0" placeholder="Min price" value="${activeRoomPriceMin}" oninput="setRoomPriceFilter('min', this.value)"/>
-      <input class="form-inp" style="max-width:140px;" type="number" min="0" placeholder="Max price" value="${activeRoomPriceMax}" oninput="setRoomPriceFilter('max', this.value)"/>
-      <select class="form-inp" style="max-width:180px;" onchange="setRoomAmenityFilter(this.value)">
-        <option value="all">All Amenities</option>
-        ${ROOM_AMENITIES.map(item => `<option value="${item}" ${activeRoomAmenity === item ? 'selected' : ''}>${item}</option>`).join('')}
-      </select>
-    </div>
+    <div class="room-filters-panel" id="room-filters-host">
+      <div class="room-filter-head">
+        <div>
+          <div class="room-filter-title">Filter rooms</div>
+          <div class="room-filter-sub">Type, budget, and essentials update directly from Firestore queries.</div>
+        </div>
+      </div>
+      <div class="room-filter-tabs" id="room-type-tabs">
+        ${['All', ...ROOM_PROPERTY_TYPES].map(type => `<button class="room-tab ${activeRoomType === type ? 'active' : ''}" onclick="setRoomTypeFilter('${type.replace(/'/g, "\\'")}')">${type}</button>`).join('')}
+      </div>
+      <div class="room-filter-grid">
+        <div class="room-filter-block">
+          <div class="room-filter-label">Monthly rent</div>
+          <div class="room-price-options">
+            <button class="room-price-option ${activeRoomPriceFilter === 'under-3000' ? 'active' : ''}" onclick="setRoomPriceFilter('under-3000')">Under ₹3000</button>
+            <button class="room-price-option ${activeRoomPriceFilter === '3000-5000' ? 'active' : ''}" onclick="setRoomPriceFilter('3000-5000')">₹3000 – ₹5000</button>
+            <button class="room-price-option ${activeRoomPriceFilter === '5000-10000' ? 'active' : ''}" onclick="setRoomPriceFilter('5000-10000')">₹5000 – ₹10000</button>
+            <button class="room-price-option ${activeRoomPriceFilter === '10000-20000' ? 'active' : ''}" onclick="setRoomPriceFilter('10000-20000')">₹10000 – ₹20000</button>
+            <button class="room-price-option ${activeRoomPriceFilter === 'above-20000' ? 'active' : ''}" onclick="setRoomPriceFilter('above-20000')">Above ₹20000</button>
+          </div>
+          <div class="room-price-custom">
+            <div class="room-price-custom-inputs">
+              <input type="number" id="room-price-min" placeholder="Min price" value="${activeRoomPriceFilter === 'custom' ? activeRoomPriceMin : ''}" min="0"/>
+              <input type="number" id="room-price-max" placeholder="Max price" value="${activeRoomPriceFilter === 'custom' ? activeRoomPriceMax : ''}" min="0"/>
+            </div>
+            <button class="room-price-apply" onclick="applyCustomRoomPriceFilter()">Apply</button>
+          </div>
+          ${activeRoomPriceFilter ? `<div class="room-price-active-filter">Active: ${getPriceFilterLabel(activeRoomPriceFilter)} <span onclick="clearRoomPriceFilter()" style="cursor:pointer;color:var(--orange);">✖</span></div>` : ''}
+          <div class="room-price-caption">Choose a price range or enter custom values</div>
+        </div>
+        <div class="room-filter-block">
+          <div class="room-filter-label">Amenities</div>
+          <div class="room-toggle-row">
+            ${ROOM_FILTER_AMENITIES.map(item => `<button class="room-toggle ${activeRoomAmenities.includes(item) ? 'active' : ''}" onclick="toggleRoomAmenityFilter('${item}')">${item === 'WiFi' ? '📶' : '❄️'} ${item}</button>`).join('')}
+          </div>
+          <div class="room-price-caption">Single amenity filters use direct Firestore array queries. Multiple amenity toggles narrow the live result further.</div>
+        </div>
+      </div>
     </div>`;
 }
 
@@ -2588,43 +3092,94 @@ function setRoomTypeFilter(type) {
   loadRoomListings();
 }
 
-function setRoomRentFilter(value) {
-  activeRoomRent = value;
-  if (value !== 'all') {
-    activeRoomPriceMin = '';
-    activeRoomPriceMax = '';
+function toggleRoomAmenityFilter(value) {
+  if (activeRoomAmenities.includes(value)) activeRoomAmenities = activeRoomAmenities.filter(item => item !== value);
+  else activeRoomAmenities = [...activeRoomAmenities, value];
+  loadRoomListings();
+}
+
+function setRoomPriceFilter(filterType) {
+  activeRoomPriceFilter = filterType;
+  hasTouchedRoomPrice = true;
+  
+  // Reset custom inputs when selecting predefined options
+  if (filterType !== 'custom') {
+    document.getElementById('room-price-min').value = '';
+    document.getElementById('room-price-max').value = '';
   }
+  
   loadRoomListings();
 }
 
-function setRoomAmenityFilter(value) {
-  activeRoomAmenity = value;
+function applyCustomRoomPriceFilter() {
+  const minInput = document.getElementById('room-price-min');
+  const maxInput = document.getElementById('room-price-max');
+  const minVal = parseInt(minInput.value) || 0;
+  const maxVal = parseInt(maxInput.value) || 0;
+  
+  if (minVal > 0 || maxVal > 0) {
+    activeRoomPriceFilter = 'custom';
+    activeRoomPriceMin = minVal;
+    activeRoomPriceMax = maxVal;
+    hasTouchedRoomPrice = true;
+    loadRoomListings();
+  }
+}
+
+function clearRoomPriceFilter() {
+  activeRoomPriceFilter = null;
+  activeRoomPriceMin = 0;
+  activeRoomPriceMax = 50000;
+  hasTouchedRoomPrice = false;
+  document.getElementById('room-price-min').value = '';
+  document.getElementById('room-price-max').value = '';
   loadRoomListings();
 }
 
-function setRoomPriceFilter(kind, value) {
-  if (kind === 'min') activeRoomPriceMin = value;
-  else activeRoomPriceMax = value;
-  if (value !== '') activeRoomRent = 'all';
-  loadRoomListings();
+function getPriceFilterLabel(filterType) {
+  const labels = {
+    'under-3000': 'Under ₹3000',
+    '3000-5000': '₹3000 – ₹5000',
+    '5000-10000': '₹5000 – ₹10000',
+    '10000-20000': '₹10000 – ₹20000',
+    'above-20000': 'Above ₹20000',
+    'custom': `₹${activeRoomPriceMin || 0} – ₹${activeRoomPriceMax || '∞'}`
+  };
+  return labels[filterType] || '';
+}
+
+function applyRoomTypeFilter(el, type) {
+  // Remove active from type pills
+  document.querySelectorAll('#rooms .filter-pill').forEach(p => {
+    const text = p.textContent.trim();
+    if (text === 'All' || text.includes('🏠') || text.includes('🛏️') || text.includes('👥')) {
+      p.classList.remove('active');
+    }
+  });
+  el.classList.add('active');
+  setRoomTypeFilter(type);
+}
+
+function applyRoomAmenityFilter(el, amenity) {
+  toggleRoomAmenityFilter(amenity);
+  el.classList.toggle('active');
 }
 
 function getActiveRoomHeading() {
-  return activeRoomType === 'All' ? 'Rooms & PG Near You' : `${activeRoomType} Available Near You`;
+  return activeRoomType === 'All' ? 'Rooms & PG' : `${activeRoomType} rooms`;
 }
 
 function getActiveRoomHint() {
-  return activeRoomType === 'All' ? 'Showing all room sub-types' : `Showing only ${activeRoomType} listings`;
+  if (activeRoomAmenities.length) return `${activeRoomAmenities.join(' + ')} enabled`;
+  return activeRoomType === 'All' ? 'Showing all room types' : `Showing only ${activeRoomType}`;
 }
 
 function getActiveRoomEmptyTitle() {
-  return activeRoomType === 'All' ? 'No Room/PG listed yet' : `No ${activeRoomType} available yet`;
+  return 'No rooms / PG available 😢';
 }
 
 function getActiveRoomEmptySubtext() {
-  return activeRoomType === 'All'
-    ? 'This category will show results only when an owner lists a room or PG.'
-    : `${activeRoomType} listings will appear here automatically when available.`;
+  return 'No listings match your current filters. Try adjusting your search criteria.';
 }
 
 function getActivePropertyHeading() {
@@ -2635,14 +3190,20 @@ function getActivePropertyHint() {
   return activePropertyType === 'All' ? 'Showing all property types' : `Showing only ${prettyPropertyType(activePropertyType)} listings`;
 }
 
+function isPropertyFiltersActive() {
+  return activePropertyType !== 'All' ||
+         activePropertyPriceFilter !== null ||
+         (propertySearchQuery || '').trim().length > 0;
+}
+
 function getActivePropertyEmptyTitle() {
-  return activePropertyType === 'All' ? 'No properties listed yet' : `No ${prettyPropertyType(activePropertyType)} properties available`;
+  if (isPropertyFiltersActive()) return 'No properties match your filters 👀';
+  return 'No properties available 👀';
 }
 
 function getActivePropertyEmptySubtext() {
-  return activePropertyType === 'All'
-    ? 'Property listings will appear here automatically when owners add them.'
-    : `${prettyPropertyType(activePropertyType)} listings will appear here automatically when available.`;
+  if (isPropertyFiltersActive()) return 'Try adjusting your budget or property type';
+  return 'Be the first to list a property in this area';
 }
 
 function getPropertyListings() {
@@ -2651,11 +3212,38 @@ function getPropertyListings() {
 
 function applyPropertyFiltersToQuery(ref) {
   let query = ref.where('category', '==', 'Property for Sale').where('active', '==', true);
-  if (activePropertyType !== 'All') query = query.where('propertyType', '==', activePropertyType);
-  const minPrice = activePropertyPriceMin !== '' ? Number(activePropertyPriceMin) : null;
-  const maxPrice = activePropertyPriceMax !== '' ? Number(activePropertyPriceMax) : null;
-  if (minPrice !== null && !Number.isNaN(minPrice)) query = query.where('price', '>=', minPrice);
-  if (maxPrice !== null && !Number.isNaN(maxPrice)) query = query.where('price', '<=', maxPrice);
+  if (activePropertyType !== 'All') {
+    const normalized = normalizePropertyType(activePropertyType);
+    const display = prettyPropertyType(activePropertyType);
+    // Support both normalized and legacy caps forms (Land/land)
+    query = query.where('propertyType', 'in', [normalized, display]);
+  }
+  
+  // Apply price filter
+  if (activePropertyPriceFilter) {
+    switch (activePropertyPriceFilter) {
+      case 'under-5l':
+        query = query.where('price', '<=', 500000);
+        break;
+      case '5l-20l':
+        query = query.where('price', '>=', 500000).where('price', '<=', 2000000);
+        break;
+      case '20l-50l':
+        query = query.where('price', '>=', 2000000).where('price', '<=', 5000000);
+        break;
+      case '50l-1cr':
+        query = query.where('price', '>=', 5000000).where('price', '<=', 10000000);
+        break;
+      case 'above-1cr':
+        query = query.where('price', '>=', 10000000);
+        break;
+      case 'custom':
+        if (activePropertyPriceMin > 0) query = query.where('price', '>=', activePropertyPriceMin);
+        if (activePropertyPriceMax > 0) query = query.where('price', '<=', activePropertyPriceMax);
+        break;
+    }
+  }
+  
   query = query.orderBy('price', 'asc');
   return query.limit(50);
 }
@@ -2675,6 +3263,7 @@ function loadPropertyListings() {
           icon: catIcon('Property for Sale'),
           phone: s.phone,
           address: s.address,
+          pincode: s.pincode || '',
           hours: s.hours,
           lat: loc ? loc.latitude : s.lat || null,
           lng: loc ? loc.longitude : s.lng || null,
@@ -2685,7 +3274,7 @@ function loadPropertyListings() {
           photos: s.photos || s.images || [],
           info: s.info || '',
           trustScore: s.trustScore || 100,
-          propertyType: s.propertyType || null,
+          propertyType: normalizePropertyType(s.propertyType || ''),
           price: s.price || null,
           area: s.area || null
         });
@@ -2699,56 +3288,183 @@ function loadPropertyListings() {
 }
 
 function renderPropertyFilterBar() {
-  return `
-    <div id="property-filters-wrap">
-    <div style="display:flex;gap:8px;overflow-x:auto;padding:12px 16px 0;scrollbar-width:none;" id="property-type-tabs">
-      ${['All', ...PROPERTY_TYPES].map(type => {
-        const key = type === 'All' ? 'All' : type;
-        const label = type === 'All' ? 'All' : prettyPropertyType(type);
-        return `<div class="filter-pill ${activePropertyType === key ? 'active' : ''}" onclick="setPropertyTypeFilter('${key}')">${label}</div>`;
-      }).join('')}
-    </div>
-    <div style="display:flex;gap:8px;padding:12px 16px 0;flex-wrap:wrap;">
-      <input class="form-inp" style="max-width:160px;" type="number" min="0" placeholder="Min price" value="${activePropertyPriceMin}" oninput="setPropertyPriceFilter('min', this.value)"/>
-      <input class="form-inp" style="max-width:160px;" type="number" min="0" placeholder="Max price" value="${activePropertyPriceMax}" oninput="setPropertyPriceFilter('max', this.value)"/>
-    </div>
-    </div>`;
+  // No-op: filter UI is now static HTML in the page, we just sync state
+  syncPropertyFilterUI();
+  return '';
+}
+
+function syncPropertyFilterUI() {
+  // Sync tab highlights
+  document.querySelectorAll('#prop-type-tabs .prop-tab').forEach(btn => {
+    const t = btn.dataset.type;
+    btn.classList.toggle('active', t === activePropertyType);
+  });
+  // Sync price chips
+  document.querySelectorAll('.prop-price-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.dataset.filter === activePropertyPriceFilter);
+  });
+  // Active filter badge
+  const badge = document.getElementById('prop-active-filter-badge');
+  const label = document.getElementById('prop-active-filter-label');
+  if (badge && label) {
+    if (activePropertyPriceFilter) {
+      badge.style.display = 'inline-flex';
+      label.textContent = getPropertyPriceLabel(activePropertyPriceFilter);
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+  // Clear all button
+  const clearBtn = document.getElementById('prop-filter-clear-btn');
+  if (clearBtn) clearBtn.style.display = isPropertyFiltersActive() ? '' : 'none';
+  // Hint text
+  const hint = document.getElementById('property-hint');
+  if (hint) hint.textContent = getActivePropertyHint();
 }
 
 function setPropertyTypeFilter(type) {
   activePropertyType = type;
+  // Immediately sync tab UI for snappy feel
+  document.querySelectorAll('#prop-type-tabs .prop-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.type === type);
+  });
+  // Scroll to top of screen
+  const screen = document.getElementById('properties');
+  if (screen) screen.scrollTop = 0;
   loadPropertyListings();
 }
 
-function setPropertyPriceFilter(kind, value) {
-  if (kind === 'min') activePropertyPriceMin = value;
-  else activePropertyPriceMax = value;
+function setPropertySearchQuery(query) {
+  propertySearchQuery = query.toLowerCase();
+  renderPropertySections();
+}
+
+function setPropertyPriceFilter(filter) {
+  activePropertyPriceFilter = filter;
+  activePropertyPriceMin = 0;
+  activePropertyPriceMax = 0;
+  document.getElementById('property-price-min').value = '';
+  document.getElementById('property-price-max').value = '';
   loadPropertyListings();
+}
+
+function applyCustomPropertyPrice() {
+  const minInput = document.getElementById('property-price-min');
+  const maxInput = document.getElementById('property-price-max');
+  const minVal = parseInt(minInput.value) || 0;
+  const maxVal = parseInt(maxInput.value) || 0;
+  
+  if (minVal > 0 || maxVal > 0) {
+    activePropertyPriceFilter = 'custom';
+    activePropertyPriceMin = minVal;
+    activePropertyPriceMax = maxVal;
+    loadPropertyListings();
+  }
+}
+
+function clearPropertyPriceFilter() {
+  activePropertyPriceFilter = null;
+  activePropertyPriceMin = 0;
+  activePropertyPriceMax = 0;
+  propertySearchQuery = '';
+  document.getElementById('property-search').value = '';
+  document.getElementById('property-price-min').value = '';
+  document.getElementById('property-price-max').value = '';
+  loadPropertyListings();
+}
+
+function clearPropertyFilters() {
+  activePropertyType = 'All';
+  activePropertyPriceFilter = null;
+  activePropertyPriceMin = 0;
+  activePropertyPriceMax = 0;
+  propertySearchQuery = '';
+  document.getElementById('property-search').value = '';
+  document.getElementById('property-price-min').value = '';
+  document.getElementById('property-price-max').value = '';
+  loadPropertyListings();
+}
+
+function getPropertyPriceLabel(filter) {
+  const labels = {
+    'under-5l': 'Under ₹5L',
+    '5l-20l': '₹5L – ₹20L',
+    '20l-50l': '₹20L – ₹50L',
+    '50l-1cr': '₹50L – ₹1Cr',
+    'above-1cr': 'Above ₹1Cr',
+    'custom': `₹${(activePropertyPriceMin || 0).toLocaleString('en-IN')} – ₹${(activePropertyPriceMax || '∞').toLocaleString('en-IN')}`
+  };
+  return labels[filter] || '';
+}
+
+function filterPropertiesBySearch(properties) {
+  if (!propertySearchQuery) return properties;
+  
+  return properties.filter(p => {
+    const name = (p.name || '').toLowerCase();
+    const address = (p.address || '').toLowerCase();
+    const pincode = (p.pincode || '').toString();
+    return name.includes(propertySearchQuery) || address.includes(propertySearchQuery) || pincode.includes(propertySearchQuery);
+  });
 }
 
 function renderPropertySections() {
   const list = document.getElementById('properties-list');
   const empty = document.getElementById('properties-empty');
-  const filters = document.getElementById('property-filters-host');
-  const title = document.getElementById('property-title');
-  const hint = document.getElementById('property-hint');
-  const emptyTitle = document.getElementById('properties-empty-title');
-  const emptySub = document.getElementById('properties-empty-sub');
-  const filterWrap = document.getElementById('property-filters-wrap');
-  if (filters) filters.innerHTML = renderPropertyFilterBar();
-  if (filterWrap) filterWrap.outerHTML = renderPropertyFilterBar();
-  if (title) title.textContent = getActivePropertyHeading();
-  if (hint) hint.textContent = getActivePropertyHint();
-  if (emptyTitle) emptyTitle.textContent = getActivePropertyEmptyTitle();
-  if (emptySub) emptySub.textContent = getActivePropertyEmptySubtext();
+  const countEl = document.getElementById('prop-count');
+  const statTotal = document.getElementById('prop-stat-total');
+  if (!list) return;
 
-  const properties = getPropertyListings();
-  if (properties.length) {
-    renderToContainer('properties-list', properties);
-    if (empty) empty.style.display = 'none';
+  // Sync filter UI state
+  syncPropertyFilterUI();
+
+  let properties = getPropertyListings();
+  properties = filterPropertiesBySearch(properties);
+
+  // Update count displays
+  if (countEl) countEl.textContent = properties.length;
+  if (statTotal) statTotal.textContent = propertyListings.length || '—';
+
+  if (isPropertyFiltersActive()) {
+    if (properties.length) {
+      list.innerHTML = '';
+      renderPropertyCards('properties-list', properties);
+      if (empty) empty.style.display = 'none';
+    } else {
+      list.innerHTML = '';
+      document.getElementById('properties-empty-title').textContent = getActivePropertyEmptyTitle();
+      document.getElementById('properties-empty-sub').textContent = getActivePropertyEmptySubtext();
+      if (empty) empty.style.display = '';
+    }
   } else {
-    if (list) list.innerHTML = '';
-    if (empty) empty.style.display = '';
+    list.innerHTML = '';
+    const types = ['land','house','apartment','commercial','other'];
+    const typeIcons = {land:'🌿',house:'🏠',apartment:'🏢',commercial:'🏪',other:'📦'};
+    let hasAny = false;
+    types.forEach(type => {
+      const typeProperties = propertyListings.filter(p => normalizePropertyType(p.propertyType) === type);
+      const filtered = filterPropertiesBySearch(typeProperties);
+      if (filtered.length > 0) {
+        hasAny = true;
+        const sectionId = `prop-section-${type}`;
+        list.insertAdjacentHTML('beforeend', `
+          <div class="prop-section-head">
+            <div class="prop-section-icon">${typeIcons[type] || '🏠'}</div>
+            <div class="prop-section-label">${prettyPropertyType(type)} Properties</div>
+            <div class="prop-section-badge">${filtered.length}</div>
+          </div>
+          <div class="property-section-list" id="${sectionId}"></div>
+        `);
+        renderPropertyCards(sectionId, filtered);
+      }
+    });
+    if (!hasAny) {
+      document.getElementById('properties-empty-title').textContent = getActivePropertyEmptyTitle();
+      document.getElementById('properties-empty-sub').textContent = getActivePropertyEmptySubtext();
+      if (empty) empty.style.display = '';
+    } else {
+      if (empty) empty.style.display = 'none';
+    }
   }
 }
 
@@ -2756,71 +3472,138 @@ function renderRoomSections() {
   const rooms = getRoomListings();
   const homeRoomsWrap = document.getElementById('home-rooms-wrap');
   const homeRoomsList = document.getElementById('home-rooms-list');
-  const homeRoomsEmpty = document.getElementById('home-rooms-empty');
   const legacyRoomFilters = document.querySelector('#rooms > div[style*="overflow-x:auto"]');
-  const roomsScreen = document.querySelector('#rooms .rooms-grid') || document.getElementById('rooms-list')?.parentElement;
   const roomsList = document.getElementById('rooms-list');
-  const roomsEmpty = document.getElementById('rooms-empty');
+  const roomsLoading = document.getElementById('rooms-loading');
 
   if (legacyRoomFilters) legacyRoomFilters.remove();
 
   if (homeRoomsWrap && !homeRoomsList) {
     homeRoomsWrap.innerHTML = `
-      <div class="shop-list" id="home-rooms-list"></div>
-      <div id="home-rooms-empty" style="display:none;text-align:center;padding:30px 20px;color:var(--muted);">
-        <div style="font-size:40px;margin-bottom:10px;">🏠</div>
-        <div style="font-size:15px;font-weight:500;margin-bottom:6px;">No Room/PG listed yet</div>
-        <div style="font-size:12px;margin-bottom:14px;">Room and PG listings will appear here only after an owner lists them.</div>
-        <button onclick="switchScreen('list-shop')" style="background:var(--orange);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;cursor:pointer;font-family:'Noto Sans',sans-serif;font-weight:600;">+ List Room / PG</button>
-      </div>`;
-  }
-
-  if (roomsScreen && !roomsList) {
-    roomsScreen.outerHTML = `
-      <div class="section" style="padding-bottom:20px;">
-        ${renderRoomFilterBar()}
-        <div class="sec-header">
-          <div class="sec-title">${getActiveRoomHeading()}</div>
-          <div style="font-size:12px;color:var(--muted);">${getActiveRoomHint()}</div>
-        </div>
-        <div class="shop-list" id="rooms-list"></div>
-        <div id="rooms-empty" style="display:none;text-align:center;padding:30px 20px;color:var(--muted);">
-          <div style="font-size:40px;margin-bottom:10px;">🏠</div>
-          <div style="font-size:15px;font-weight:500;margin-bottom:6px;">${getActiveRoomEmptyTitle()}</div>
-          <div style="font-size:12px;margin-bottom:14px;">${getActiveRoomEmptySubtext()}</div>
-          <button onclick="switchScreen('list-shop')" style="background:var(--orange);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;cursor:pointer;font-family:'Noto Sans',sans-serif;font-weight:600;">+ List Room / PG</button>
-        </div>
-      </div>`;
+      <div class="shop-list" id="home-rooms-list"></div>`;
   }
 
   const currentHomeRoomsList = document.getElementById('home-rooms-list');
-  const currentHomeRoomsEmpty = document.getElementById('home-rooms-empty');
   const currentRoomsList = document.getElementById('rooms-list');
-  const currentRoomsEmpty = document.getElementById('rooms-empty');
   const roomFiltersHost = document.getElementById('room-filters-host');
-  const roomTitle = document.querySelector('#rooms .sec-title');
-  const roomHint = document.querySelector('#rooms .sec-header div[style*="font-size:12px"]');
+  const roomsCount = document.getElementById('rooms-results-count');
+  const roomsHint = document.getElementById('rooms-results-hint');
 
   if (roomFiltersHost) roomFiltersHost.outerHTML = renderRoomFilterBar();
-  if (roomTitle) roomTitle.textContent = getActiveRoomHeading();
-  if (roomHint) roomHint.textContent = getActiveRoomHint();
+  if (roomsCount) roomsCount.textContent = `${rooms.length} ${rooms.length === 1 ? 'listing' : 'listings'}`;
+  if (roomsHint) roomsHint.textContent = `${getActiveRoomHeading()} • ${getActiveRoomHint()}`;
 
   if (currentHomeRoomsList) currentHomeRoomsList.innerHTML = '';
   if (currentRoomsList) currentRoomsList.innerHTML = '';
-
-  if (rooms.length) {
-    renderToContainer('home-rooms-list', rooms.slice(0, 5));
-    renderToContainer('rooms-list', rooms);
-    if (currentHomeRoomsEmpty) currentHomeRoomsEmpty.style.display = 'none';
-    if (currentRoomsEmpty) currentRoomsEmpty.style.display = 'none';
-  } else {
-    const emptyTitle = currentRoomsEmpty?.querySelector('div[style*="font-size:15px"]');
-    const emptySub = currentRoomsEmpty?.querySelector('div[style*="font-size:12px"]');
-    if (emptyTitle) emptyTitle.textContent = getActiveRoomEmptyTitle();
-    if (emptySub) emptySub.textContent = getActiveRoomEmptySubtext();
-    if (currentHomeRoomsEmpty) currentHomeRoomsEmpty.style.display = '';
-    if (currentRoomsEmpty) currentRoomsEmpty.style.display = '';
+  if (roomsLoading) {
+    roomsLoading.style.display = roomListingsLoading ? '' : 'none';
+    if (roomListingsLoading) roomsLoading.innerHTML = renderRoomSkeletons(6);
   }
+  if (roomListingsLoading) {
+    // No empty state to hide during loading
+    const filterEmpty = document.getElementById('rooms-filter-empty');
+    if (filterEmpty) filterEmpty.style.display = 'none';
+  }
+
+  if (!roomListingsLoading && rooms.length) {
+    renderToContainer('home-rooms-list', rooms.slice(0, 5));
+    renderRoomCards('rooms-list', rooms);
+    // Hide empty state when results are found
+    const filterEmpty = document.getElementById('rooms-filter-empty');
+    if (filterEmpty) filterEmpty.style.display = 'none';
+  } else if (!roomListingsLoading) {
+    // Clear any existing content
+    if (currentHomeRoomsList) currentHomeRoomsList.innerHTML = '';
+    if (currentRoomsList) currentRoomsList.innerHTML = '';
+    
+    // Show filter empty state only if filters are active
+    const filterEmpty = document.getElementById('rooms-filter-empty');
+    if (filterEmpty) {
+      filterEmpty.style.display = isRoomFiltersActive() ? 'block' : 'none';
+    }
+  }
+}
+
+function isRoomFiltersActive() {
+  return activeRoomType !== 'All' || 
+         activeRoomPriceFilter !== null || 
+         activeRoomAmenities.length > 0;
+}
+
+function resetRoomFilters() {
+  activeRoomType = 'All';
+  activeRoomPriceFilter = null;
+  activeRoomPriceMin = 0;
+  activeRoomPriceMax = 50000;
+  activeRoomAmenities = [];
+  hasTouchedRoomPrice = false;
+  
+  // Clear custom price inputs
+  const minInput = document.getElementById('room-price-min');
+  const maxInput = document.getElementById('room-price-max');
+  if (minInput) minInput.value = '';
+  if (maxInput) maxInput.value = '';
+  
+  loadRoomListings();
+}
+
+function roomAmenityIcon(name) {
+  if (name === 'WiFi') return '📶';
+  if (name === 'AC') return '❄️';
+  if (name === 'Parking') return '🅿️';
+ 
+  
+  
+  return '•';
+}
+
+function renderRoomSkeletons(count = 6) {
+  return Array.from({ length: count }).map(() => `
+    <div class="room-skeleton">
+      <div class="room-skeleton-media"></div>
+      <div class="room-skeleton-body">
+        <div class="room-skeleton-line short"></div>
+        <div class="room-skeleton-line long"></div>
+        <div class="room-skeleton-line mid"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderRoomCards(containerId, rooms) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const sorted = userLoc ? sortByDistance(rooms) : rooms;
+  container.innerHTML = sorted.map((room, idx) => {
+    const preview = (room.images && room.images[0]) || (room.photos && room.photos[0]) || '';
+    const amenityChips = ROOM_AMENITIES.slice(0, 4).map(item => {
+      const active = (room.amenities || []).includes(item);
+      return `<span class="room-amenity-chip ${active ? '' : 'dim'}">${roomAmenityIcon(item)} ${item}</span>`;
+    }).join('');
+    const locationBits = [room.address, room.pincode].filter(Boolean).join(', ');
+    return `
+      <article class="room-card-rich" style="animation-delay:${Math.min(idx * 60, 360)}ms;" onclick="openModal(${JSON.stringify(room).replace(/"/g,'&quot;')})">
+        <div class="room-card-media">
+          ${preview ? `<img src="${preview}" alt="${room.propertyType || 'Room'}" loading="lazy"/>` : ''}
+          <div class="room-card-badge-row">
+            <span class="room-card-badge type">${room.propertyType || 'Room'}</span>
+            ${room.availableFor ? `<span class="room-card-badge available">${room.availableFor}</span>` : ''}
+          </div>
+          <div class="room-card-overlay">
+            <div class="room-card-price">₹${Number(room.rent || 0).toLocaleString('en-IN')}<span>/month</span></div>
+          </div>
+        </div>
+        <div class="room-card-body">
+          <div>
+            <div class="room-card-location">📍 ${room.address || 'Address unavailable'}</div>
+            <div class="room-card-address">${locationBits || 'Location details will appear here when available.'}</div>
+          </div>
+          <div class="room-amenity-icons">${amenityChips}</div>
+          <div class="room-card-pin">Pincode: <strong>${room.pincode || 'Not shared'}</strong></div>
+        </div>
+      </article>
+    `;
+  }).join('');
 }
 
 function renderShopLists() {
@@ -2900,6 +3683,74 @@ function _renderStars(rating) {
   const half  = rating % 1 >= 0.5 ? 1 : 0;
   const empty = 5 - full - half;
   return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
+}
+
+function renderPropertyCards(containerId, properties) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const sorted = userLoc ? sortByDistance(properties) : properties;
+  container.innerHTML = sorted.map((p, i) => {
+    const hasImg = p.photos && p.photos.length;
+    const image = hasImg ? p.photos[0] : null;
+    const priceNum = parseFloat(p.price) || 0;
+    const priceStr = priceNum
+      ? (priceNum >= 10000000 ? `₹${(priceNum/10000000).toFixed(2)} Cr` :
+         priceNum >= 100000  ? `₹${(priceNum/100000).toFixed(1)} L` :
+         `₹${priceNum.toLocaleString('en-IN')}`)
+      : 'Price on Request';
+    const type = p.propertyType ? prettyPropertyType(p.propertyType) : 'Property';
+    const typeIcons = {land:'🌿',house:'🏠',apartment:'🏢',commercial:'🏪',other:'📦'};
+    const typeIcon = typeIcons[normalizePropertyType(p.propertyType)] || '🏠';
+    const city = p.address || '';
+    const pin = p.pincode ? ` • ${p.pincode}` : '';
+    const locStr = (city + pin) || 'Location not specified';
+    const area = p.area ? `${p.area} sq.ft` : '';
+    const isSaved = FavSystem.isSaved(p.name);
+    const distStr = Number.isFinite(p.distKm) ? (p.distKm < 1 ? `${Math.round(p.distKm*1000)} m` : `${p.distKm} km`) : '';
+    const delay = Math.min(i * 60, 400);
+    return `
+    <div class="prop-card" style="animation-delay:${delay}ms" onclick="openModal(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+      <div class="prop-card-media">
+        ${hasImg
+          ? `<img src="${image}" alt="${p.name || type}" loading="lazy" onerror="this.style.display='none';this.parentElement.querySelector('.prop-card-media-placeholder').style.display='flex'">`
+          : ''}
+        <div class="prop-card-media-placeholder" style="${hasImg ? 'display:none' : 'display:flex'}">
+          <div class="prop-card-media-placeholder-icon">${typeIcon}</div>
+          <div class="prop-card-media-placeholder-text">No photo added</div>
+        </div>
+        <div class="prop-card-overlay"></div>
+        <div class="prop-card-badges">
+          <span class="prop-card-badge type">${typeIcon} ${type}</span>
+          ${p.trustScore >= 90 ? '<span class="prop-card-badge verified">✓ Verified</span>' : ''}
+        </div>
+        <div class="prop-card-price-block">
+          <div>
+            <div class="prop-card-price">${priceStr}</div>
+            <div class="prop-card-price-sub">${area ? area : 'Tap to view details'}</div>
+          </div>
+        </div>
+        <div class="prop-card-fav" onclick="event.stopPropagation();FavSystem.toggle(${JSON.stringify(p).replace(/"/g,'&quot;')},this)">
+          ${isSaved ? '❤️' : '🤍'}
+        </div>
+      </div>
+      <div class="prop-card-body">
+        ${p.name ? `<div class="prop-card-name">${p.name}</div>` : ''}
+        <div class="prop-card-loc">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+          ${locStr}
+        </div>
+        <div class="prop-card-meta">
+          <span class="prop-card-chip highlight">🏷️ ${priceStr}</span>
+          ${area ? `<span class="prop-card-chip">📐 ${area}</span>` : ''}
+          ${distStr ? `<span class="prop-card-chip teal">📍 ${distStr}</span>` : ''}
+        </div>
+        <div class="prop-card-cta">
+          <button class="prop-card-btn primary" onclick="event.stopPropagation();openModal(${JSON.stringify(p).replace(/"/g,'&quot;')})">View Details</button>
+          ${p.phone ? `<button class="prop-card-btn secondary" onclick="event.stopPropagation();window.location='tel:${p.phone}'">📞 Call</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ================================================================
@@ -3802,16 +4653,73 @@ function filterCategoryList(q) {
 }
 
 // ================================================================
-//  PHOTO PREVIEW
+//  CAMERA PHOTO CAPTURE — min 5, one at a time
 // ================================================================
-function prevPhotos(inp) {
+let _capturedPhotoFiles = []; // stores File objects
+
+function addCameraPhoto(inp) {
+  if (!inp.files || !inp.files[0]) return;
+  const file = inp.files[0];
+  if (_capturedPhotoFiles.length >= 10) {
+    toast('Maximum 10 photos allowed', 'err'); return;
+  }
+  _capturedPhotoFiles.push(file);
+  // Reset input so same photo can be retaken
+  inp.value = '';
+  _renderCameraPhotoPreview();
+  _updatePhotoDots();
+  // Haptic feedback hint
+  toast(`Photo ${_capturedPhotoFiles.length} added ✅`, 'ok');
+}
+
+function _renderCameraPhotoPreview() {
   const prev = document.getElementById('photo-prev');
+  if (!prev) return;
   prev.innerHTML = '';
-  Array.from(inp.files).forEach(f => {
+  _capturedPhotoFiles.forEach((file, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'photo-thumb-wrap';
     const r = new FileReader();
-    r.onload = e => { const img = document.createElement('img'); img.className = 'photo-thumb'; img.src = e.target.result; prev.appendChild(img); };
-    r.readAsDataURL(f);
+    r.onload = e => {
+      wrap.innerHTML = `
+        <img class="photo-thumb" src="${e.target.result}" alt="Photo ${i+1}" style="width:72px;height:72px;border-radius:10px;object-fit:cover;border:1px solid var(--border);display:block;"/>
+        <button class="photo-thumb-del" onclick="removeCameraPhoto(${i})" title="Remove">✕</button>`;
+    };
+    r.readAsDataURL(file);
+    prev.appendChild(wrap);
   });
+}
+
+function removeCameraPhoto(index) {
+  _capturedPhotoFiles.splice(index, 1);
+  _renderCameraPhotoPreview();
+  _updatePhotoDots();
+}
+
+function _updatePhotoDots() {
+  const count = _capturedPhotoFiles.length;
+  const label = document.getElementById('photo-count-label');
+  for (let i = 1; i <= 5; i++) {
+    const dot = document.getElementById(`dot-${i}`);
+    if (!dot) continue;
+    dot.className = 'photo-dot';
+    if (i <= count && count >= 5) dot.classList.add('min-met');
+    else if (i <= count) dot.classList.add('filled');
+  }
+  if (label) {
+    if (count >= 5) {
+      label.textContent = `${count} photos ✓`;
+      label.className = 'photo-counter-label ok';
+    } else {
+      label.textContent = `${count} / 5 photos`;
+      label.className = 'photo-counter-label warn';
+    }
+  }
+}
+
+// Legacy function — kept for compatibility
+function prevPhotos(inp) {
+  addCameraPhoto(inp);
 }
 
 function filterBusinesses(list = allShops, filter = 'All') {
@@ -4126,30 +5034,58 @@ async function submitShop() {
   const openT = document.getElementById('f-open').value;
   const closeT= document.getElementById('f-close').value;
   const fuelType = document.getElementById('f-fuel-type')?.value || '';
-  const propertyType = normalizeRoomPropertyType(document.getElementById('f-property-type')?.value || '');
+  const propertyType = normalizePropertyType(document.getElementById('f-property-type')?.value || '');
   const price = document.getElementById('f-price')?.value || '';
+  const rent = document.getElementById('f-rent')?.value || price;
   const area = document.getElementById('f-area')?.value.trim() || '';
-  const amenities = (document.getElementById('f-amenities')?.value || '').split(',').map(v => v.trim()).filter(Boolean);
+  const amenities = cat === 'Room / PG'
+    ? Array.from(document.querySelectorAll('input[name="f-room-amenities"]:checked')).map(el => el.value)
+    : (document.getElementById('f-amenities')?.value || '').split(',').map(v => v.trim()).filter(Boolean);
   const description = document.getElementById('f-description')?.value.trim() || '';
+  const availableFor = document.getElementById('f-available-for')?.value || '';
+  const enteredPincode = document.getElementById('f-pincode')?.value.trim() || '';
   const vehicleType = document.getElementById('f-vehicle-type')?.value || '';
   const listingText = (description || info || '').trim();
-  const files = document.getElementById('photo-inp').files;
+  const files = _capturedPhotoFiles.length ? _capturedPhotoFiles : Array.from(document.getElementById('photo-inp').files || []);
   if (!name || !cat || !phone || !addr) { toast('Please fill all required fields', 'err'); return; }
   if (cat === 'Petrol Pump/CNG' && !fuelType) { toast('Please select fuel type', 'err'); return; }
-  if (cat === 'Property for Sale' && (!propertyType || !price)) { toast('Please fill property type and price', 'err'); return; }
-  if (cat === 'Room / PG' && (!propertyType || !price)) { toast('Please fill room type and rent', 'err'); return; }
+  if (cat === 'Property for Sale') {
+    const validPropertyTypes = PROPERTY_TYPES.map(v => v.toLowerCase());
+    if (!propertyType || !validPropertyTypes.includes(propertyType.toLowerCase())) {
+      toast('Please select a valid property type', 'err');
+      return;
+    }
+    if (!price || Number(price) <= 0) { toast('Please enter a valid price', 'err'); return; }
+    if (!addr) { toast('Please enter the address', 'err'); return; }
+    if (!enteredPincode) { toast('Please enter the pincode', 'err'); return; }
+    if (files.length < 5) { toast('📷 Please click at least 5 real photos from camera', 'err'); return; }
+  }
+  if (cat === 'Room / PG') {
+    if (!propertyType) { toast('Please select the room type', 'err'); return; }
+    if (!rent || Number(rent) <= 0) { toast('Please enter a valid monthly rent', 'err'); return; }
+    if (!availableFor) { toast('Please choose who the room is available for', 'err'); return; }
+    if (!amenities.length) { toast('Please choose at least one amenity', 'err'); return; }
+    if (files.length < 5) { toast('📷 Please click at least 5 real photos from camera', 'err'); return; }
+  }
+  if (files.length < 5) { toast('📷 Please click at least 5 real photos of your shop from camera', 'err'); return; }
   if (!pickedLoc) { toast('Please pin your location on the map', 'err'); return; }
   const btn = document.getElementById('sub-btn');
   btn.disabled = true;
   spin('Checking listing quality...');
   try {
     const placeMeta = await updateLocDisplay(pickedLoc.lat, pickedLoc.lng);
+    const finalPincode = enteredPincode || placeMeta?.pincode || '';
+    if (cat === 'Room / PG' && !finalPincode) {
+      hideSpin(); btn.disabled = false;
+      toast('Pincode is required for room listings', 'err');
+      return;
+    }
     const review = await evaluateBusinessSubmission({
       name,
       phone,
       description: listingText,
       files,
-      pincode: placeMeta?.pincode || '',
+      pincode: finalPincode || placeMeta?.pincode || '',
       pickedLoc,
       currentLoc: userLoc,
       ownerId: currentUser.uid
@@ -4169,8 +5105,8 @@ async function submitShop() {
       } catch(e) { console.log('Photo upload skipped:', e.message); }
     }
     const newShop = {
-      name, category: cat, owner, phone, address: addr, pincode: placeMeta?.pincode || '',
-      info: listingText,
+      name, category: cat, owner, phone, address: addr, pincode: finalPincode || placeMeta?.pincode || '',
+      info: cat === 'Room / PG' ? (listingText + ' Available for bachelors.') : listingText,
       hours: openT && closeT ? `${openT} – ${closeT}` : 'Not specified',
       location: new firebase.firestore.GeoPoint(pickedLoc.lat, pickedLoc.lng),
       lat: pickedLoc.lat, lng: pickedLoc.lng,
@@ -4199,23 +5135,42 @@ async function submitShop() {
       active: !review.isHidden, verified: !!currentUser.phoneNumber,
       status: review.isHidden ? 'hidden' : review.visibility === 'limited' ? 'limited' : 'active'
     };
-    const businessId = await addBusiness(newShop);
     if (cat === 'Room / PG') {
-      await db.collection('properties').doc(businessId).set({
-        ...newShop,
-        businessId,
+      const roomRef = db.collection('rooms').doc();
+      await roomRef.set({
+        id: roomRef.id,
+        name,
         propertyType,
+        rent: Number(rent),
         amenities,
-        category: 'Room / PG',
-        active: !review.isHidden
+        availableFor,
+        location: new firebase.firestore.GeoPoint(pickedLoc.lat, pickedLoc.lng),
+        lat: pickedLoc.lat,
+        lng: pickedLoc.lng,
+        address: addr,
+        pincode: finalPincode,
+        images: photoURLs,
+        ownerId: currentUser.uid,
+        ownerName: owner,
+        ownerEmail: currentUser.email || '',
+        ownerPhone: currentUser.phoneNumber || phone || '',
+        phone,
+        description: (description || '') + ' Available for bachelors.',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        active: !review.isHidden,
+        status: review.isHidden ? 'hidden' : review.visibility === 'limited' ? 'limited' : 'active'
       }, { merge: true });
+      loadRoomPriceBounds();
+      loadRoomListings();
+    } else {
+      const businessId = await addBusiness(newShop);
+      if (!review.isHidden) allShops.unshift({ ...newShop, id: businessId, icon: catIcon(cat), cat, distKm: pickedLoc ? parseFloat(calcDist(userLoc?.lat||pickedLoc.lat, userLoc?.lng||pickedLoc.lng, pickedLoc.lat, pickedLoc.lng).toFixed(1)) : 0 });
     }
-    // Add to local list and re-render sorted
-    if (!review.isHidden) allShops.unshift({ ...newShop, id: businessId, icon: catIcon(cat), cat, distKm: pickedLoc ? parseFloat(calcDist(userLoc?.lat||pickedLoc.lat, userLoc?.lng||pickedLoc.lng, pickedLoc.lat, pickedLoc.lng).toFixed(1)) : 0 });
     hideSpin(); btn.disabled = false;
     toast(review.visibility === 'limited' ? 'Listing submitted with limited visibility for review.' : '✅ Business listed successfully!', review.visibility === 'limited' ? '' : 'ok');
     ['f-name','f-cat','f-owner','f-phone','f-addr','f-info'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
-    ['f-open','f-close','f-fuel-type','f-property-type','f-price','f-area','f-amenities','f-description','f-vehicle-type'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    ['f-open','f-close','f-fuel-type','f-property-type','f-price','f-rent','f-area','f-amenities','f-description','f-vehicle-type','f-pincode','f-available-for'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    document.querySelectorAll('input[name="f-room-amenities"]').forEach(el => { el.checked = false; });
     pickedLoc = null;
     document.getElementById('loc-status').textContent = '';
     document.getElementById('mini-map').style.display = 'none';
@@ -4224,7 +5179,11 @@ async function submitShop() {
     if (miniOsmMap) { try { miniOsmMap.remove(); } catch(e){} miniOsmMap = null; miniMarkerLeaflet = null; }
     const btn = document.getElementById('loc-btn-main');
     if (btn) btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;vertical-align:middle;margin-right:6px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Use My Current Location';
+    const photoInp = document.getElementById('photo-inp');
+    if (photoInp) photoInp.value = '';
     document.getElementById('photo-prev').innerHTML = '';
+    _capturedPhotoFiles = [];
+    _updatePhotoDots();
     renderShopLists();
     setTimeout(() => switchScreen('home'), 1600);
   } catch (e) {
@@ -4292,8 +5251,8 @@ const CAT_LIST = [
   '🍱 Tiffin / Food Delivery','🛠️ Repair Shop','📱 Mobile','🏬 Mobile Brand Store','🏠 Room / PG Listing','🏪 Other'
 ];
 
-const PROPERTY_TYPES = ['land','house','apartment','commercial'];
-const ROOM_AMENITIES = ['WiFi','AC','Attached Bath','Meals','Parking','Power Backup'];
+const PROPERTY_TYPES = ['land','house','apartment','commercial','other'];
+const ROOM_AMENITIES = ['WiFi','AC','Parking'];
 
 function normalizeCategoryLabel(val) {
   if (!val) return '';
@@ -4382,13 +5341,31 @@ function renderDynamicFields(cat) {
           ${ROOM_PROPERTY_TYPES.map(type => `<option value="${type}">${type}</option>`).join('')}
         </select>
       </div>
-      <div class="form-group"><div class="form-label">Monthly Rent *</div><input class="form-inp" id="f-price" type="number" min="0" placeholder="e.g. 8500"/></div>
-      <div class="form-group"><div class="form-label">Area / Size</div><input class="form-inp" id="f-area" placeholder="e.g. 1 room, 450 sq ft"/></div>
+      <div class="form-group"><div class="form-label">Monthly Rent *</div><input class="form-inp" id="f-rent" type="number" min="0" placeholder="e.g. 8500"/></div>
+      <div class="form-group"><div class="form-label">Pincode *</div><input class="form-inp" id="f-pincode" inputmode="numeric" maxlength="6" placeholder="e.g. 800001"/></div>
       <div class="form-group">
-        <div class="form-label">Amenities</div>
-        <input class="form-inp" id="f-amenities" placeholder="e.g. WiFi, AC, Parking"/>
+        <div class="form-label">Available For *</div>
+        <select class="form-inp" id="f-available-for">
+          <option value="">Select</option>
+          <option value="Boys">Boys</option>
+          <option value="Girls">Girls</option>
+          <option value="Boys & Girls">Boys & Girls</option>
+          <option value="Family">Family</option>
+        </select>
       </div>
-      <div class="form-group"><div class="form-label">Description</div><textarea class="form-inp" id="f-description" rows="3" placeholder="Rent details, furnishing, meals, restrictions, amenities..."></textarea></div>`;
+      <div class="form-group">
+        <div class="form-label">Amenities *</div>
+        <div class="room-amenities-picker">
+          ${ROOM_AMENITIES.map(item => `
+            <label class="room-amenity-option">
+              <input type="checkbox" name="f-room-amenities" value="${item}"/>
+              <span>${roomAmenityIcon(item)} ${item}</span>
+            </label>
+          `).join('')}
+        </div>
+      </div>
+      <div class="form-group"><div class="form-label">Area / Size</div><input class="form-inp" id="f-area" placeholder="e.g. 1 room, 450 sq ft"/></div>
+      <div class="form-group"><div class="form-label">Description</div><textarea class="form-inp" id="f-description" rows="3" placeholder="Rent details, furnishing, food rules, nearby landmarks..."></textarea></div>`;
   } else if (category === 'Garage / Car Repair') {
     html = `
       <div class="form-group">
@@ -5019,6 +5996,8 @@ async function updateLocDisplay(lat, lng) {
     LIVE_LOCATION_STATE.display = place;
     LIVE_LOCATION_STATE.lastRenderCoords = { lat, lng };
     updateLocationUI(place.label);
+    const pincodeField = document.getElementById('f-pincode');
+    if (pincodeField && !pincodeField.value && place?.pincode) pincodeField.value = place.pincode;
     return place;
   } catch (err) {
     console.warn('[NearbyApp] Reverse geocode error:', err);
@@ -5565,9 +6544,10 @@ function openShopDetail(s) {
     ? (dist < 1 ? Math.round(dist*1000)+' m away' : dist.toFixed(1)+' km away') : '— away';
 
   // Open/Closed
-  const open = _sdIsOpen(s.hours);
+  const isRoomListing = (s.cat || s.category) === 'Room / PG';
+  const open = isRoomListing ? true : _sdIsOpen(s.hours);
   document.getElementById('sd-status-dot').className = open ? 'dot-open' : 'dot-closed';
-  document.getElementById('sd-open-txt').textContent = open ? 'Open Now' : 'Closed';
+  document.getElementById('sd-open-txt').textContent = isRoomListing ? 'Available to enquire' : (open ? 'Open Now' : 'Closed');
 
   // Buttons
   document.getElementById('sd-call-btn').onclick = () => window.location.href = 'tel:'+(s.phone||'');
@@ -5579,7 +6559,9 @@ function openShopDetail(s) {
   // Info rows
   document.getElementById('sd-phone').textContent = s.phone || '—';
   document.getElementById('sd-phone-row').onclick = () => window.location.href = 'tel:'+(s.phone||'');
-  document.getElementById('sd-hours').textContent = s.hours || '—';
+  document.getElementById('sd-hours').textContent = isRoomListing
+    ? [s.propertyType, s.rent ? `₹${Number(s.rent).toLocaleString('en-IN')}/month` : '', s.availableFor || ''].filter(Boolean).join(' • ')
+    : (s.hours || '—');
   document.getElementById('sd-addr').textContent  = s.address || '—';
 
   const emailRow = document.getElementById('sd-email-row');
@@ -6724,8 +7706,5 @@ const _origOnSuccess = _onMfaLoginSuccess;
 </script>
 </body>
 </html>
-
-
-
-
-
+ 
+ 
