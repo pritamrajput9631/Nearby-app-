@@ -540,6 +540,59 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
 .info-ico{font-size:22px;flex-shrink:0;margin-top:1px;}
 .info-ttl{font-size:14px;font-weight:500;margin-bottom:3px;}
 .info-desc{font-size:12px;color:var(--muted);line-height:1.55;}
+.founder-page{padding:22px 16px 100px;background:radial-gradient(circle at top right,rgba(10,191,163,.14),transparent 28%),radial-gradient(circle at bottom left,rgba(255,107,53,.10),transparent 26%),var(--bg);min-height:100vh;}
+.founder-page.is-animating .founder-hero,
+.founder-page.is-animating .founder-proof,
+.founder-page.is-animating .founder-card,
+.founder-page.is-animating .founder-mission-band{opacity:0;transform:translateY(24px) scale(.985);}
+.founder-hero{background:linear-gradient(135deg,#12192C 0%,#1f2c4f 55%,#10253b 100%);border-radius:26px;padding:22px 18px;color:#fff;position:relative;overflow:hidden;margin-bottom:16px;box-shadow:0 18px 40px rgba(18,25,44,.16);animation:fadeUp .45s ease;}
+.founder-page.is-visible .founder-hero{animation:founderReveal .52s cubic-bezier(.2,.7,.2,1) forwards;}
+.founder-hero::before{content:'';position:absolute;inset:auto -40px -40px auto;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(10,191,163,.28),transparent 68%);}
+.founder-hero::after{content:'';position:absolute;inset:-50px auto auto -30px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.12),transparent 70%);}
+.founder-grid{display:grid;grid-template-columns:118px 1fr;gap:16px;align-items:center;position:relative;z-index:1;}
+.founder-photo-wrap{position:relative;}
+.founder-photo-glow{position:absolute;inset:-8px;background:linear-gradient(135deg,rgba(10,191,163,.45),rgba(255,107,53,.45));border-radius:28px;filter:blur(14px);opacity:.8;}
+.founder-photo{position:relative;width:118px;height:144px;border-radius:26px;object-fit:cover;border:2px solid rgba(255,255,255,.2);box-shadow:0 12px 30px rgba(0,0,0,.28);}
+.founder-kicker{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.78);margin-bottom:10px;backdrop-filter:blur(8px);}
+.founder-name{font-family:'Baloo 2',cursive;font-size:30px;line-height:1.05;font-weight:700;margin-bottom:6px;}
+.founder-sub{font-size:14px;color:rgba(255,255,255,.74);line-height:1.7;max-width:34ch;}
+.founder-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px;position:relative;z-index:1;}
+.founder-stat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:12px 10px;backdrop-filter:blur(8px);}
+.founder-stat strong{display:block;font-family:'Baloo 2',cursive;font-size:20px;color:#fff;}
+.founder-stat span{display:block;font-size:11px;color:rgba(255,255,255,.62);margin-top:2px;}
+.founder-card{background:rgba(255,255,255,.84);border:1px solid rgba(255,255,255,.45);border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 14px 30px rgba(18,25,44,.06);backdrop-filter:blur(14px);animation:fadeUp .5s ease;}
+.founder-card-title{font-family:'Baloo 2',cursive;font-size:21px;font-weight:600;color:var(--navy);margin-bottom:8px;}
+.founder-card-copy{font-size:14px;line-height:1.9;color:var(--text);}
+.founder-highlight{background:linear-gradient(135deg,rgba(10,191,163,.12),rgba(255,107,53,.09));border:1px solid rgba(10,191,163,.18);}
+.founder-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+.founder-action{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.1);color:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:transform .18s,background .18s,border-color .18s;text-decoration:none;}
+.founder-action:hover{transform:translateY(-2px);background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.26);}
+.founder-proof{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px;}
+.founder-page.is-visible .founder-proof{animation:founderReveal .55s cubic-bezier(.2,.7,.2,1) .08s forwards;}
+.founder-proof-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px 12px;text-align:center;box-shadow:0 10px 24px rgba(18,25,44,.05);}
+.founder-proof-card strong{display:block;font-family:'Baloo 2',cursive;font-size:17px;color:var(--navy);}
+.founder-proof-card span{display:block;font-size:11px;color:var(--muted);line-height:1.5;margin-top:4px;}
+.founder-sign{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(18,25,44,.08);}
+.founder-sign-name{font-family:'Baloo 2',cursive;font-size:20px;color:var(--navy);}
+.founder-sign-role{font-size:12px;color:var(--muted);}
+.founder-story-flow{display:grid;gap:12px;margin-top:14px;}
+.founder-story-step{display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:start;}
+.founder-story-badge{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--orange),#ff8d62);color:#fff;font-family:'Baloo 2',cursive;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 20px rgba(255,107,53,.18);}
+.founder-story-text{font-size:14px;line-height:1.85;color:var(--text);padding-top:2px;}
+.founder-mission-band{background:linear-gradient(135deg,#12192C,#24304f);border-radius:22px;padding:18px;color:#fff;margin-bottom:14px;box-shadow:0 16px 30px rgba(18,25,44,.12);}
+.founder-page.is-visible .founder-card:nth-of-type(1){animation:founderReveal .55s cubic-bezier(.2,.7,.2,1) .14s forwards;}
+.founder-page.is-visible .founder-card:nth-of-type(2){animation:founderReveal .55s cubic-bezier(.2,.7,.2,1) .2s forwards;}
+.founder-page.is-visible .founder-mission-band{animation:founderReveal .55s cubic-bezier(.2,.7,.2,1) .26s forwards;}
+.founder-page.is-visible .founder-card:nth-of-type(3){animation:founderReveal .55s cubic-bezier(.2,.7,.2,1) .32s forwards;}
+.founder-mission-band strong{display:block;font-family:'Baloo 2',cursive;font-size:23px;line-height:1.15;margin-bottom:8px;}
+.founder-mission-band span{display:block;font-size:14px;line-height:1.8;color:rgba(255,255,255,.78);}
+@keyframes founderReveal{from{opacity:0;transform:translateY(24px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media (max-width:560px){
+  .founder-grid{grid-template-columns:1fr;}
+  .founder-photo{width:132px;height:158px;}
+  .founder-proof{grid-template-columns:1fr;}
+  .founder-story-step{grid-template-columns:1fr;}
+}
 .logout-btn{margin:0 16px;background:#fff1ee;color:var(--orange);border:1px solid #ffd5c8;border-radius:var(--rsm);padding:13px;font-size:14px;font-weight:500;cursor:pointer;width:calc(100% - 32px);font-family:'Noto Sans',sans-serif;transition:all .2s;}
 .logout-btn:hover{background:var(--orange);color:#fff;}
 
@@ -1715,11 +1768,122 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
     <div class="info-card" onclick="openDashboard()"><div class="info-ico">📊</div><div><div class="info-ttl">My Dashboard</div><div class="info-desc">Manage your business you have listed on Nearby.</div></div></div>
     <div class="info-card" onclick="document.getElementById('help-modal').classList.add('open')"><div class="info-ico">📞</div><div><div class="info-ttl">Help &amp; Support</div><div class="info-desc">Having a problem? Reach us on WhatsApp or email anytime.</div></div></div>
     <div class="info-card" onclick="openAboutModal()"><div class="info-ico">ℹ️</div><div><div class="info-ttl">About Nearby</div><div class="info-desc">Made with ❤️ for all of you</div></div></div>
+    <div class="info-card" onclick="switchScreen('about-founder')"><div class="info-ico">👤</div><div><div class="info-ttl">About Founder</div><div class="info-desc">Meet the founder and learn the story behind Nearby.</div></div></div>
     <div class="info-card" onclick="openPayment()"><div class="info-ico">💳</div><div><div class="info-ttl">Upgrade Plan</div><div class="info-desc">Free → Premium → Business. Unlock priority listing & analytics.</div></div></div>
 
     <div class="info-card" id="admin-menu-item" onclick="openAdmin()" style="display:none;"><div class="info-ico">⚙️</div><div><div class="info-ttl">Admin Panel</div><div class="info-desc">Manage users, shops, payments and send push notifications.</div></div></div>
   </div>
   <button class="logout-btn" onclick="doLogout()">🚪 Log Out</button>
+</div>
+
+<!-- ABOUT FOUNDER SCREEN -->
+<div id="about-founder" class="screen">
+  <div class="topbar">
+    <div class="topbar-back">
+      <button class="back-btn" onclick="goBack()">←</button>
+      <div style="font-family:'Baloo 2',cursive;font-size:18px;font-weight:600;color:#fff;">About Founder</div>
+    </div>
+  </div>
+  <div class="founder-page">
+    <div class="founder-hero">
+      <div class="founder-grid">
+        <div class="founder-photo-wrap">
+          <div class="founder-photo-glow"></div>
+          <img src="founder image .webp" alt="Pritam Rajput" class="founder-photo"/>
+        </div>
+        <div>
+          <div class="founder-kicker">Nearby Founder Story</div>
+          <div class="founder-name">Pritam Rajput</div>
+          <div class="founder-sub">Building Nearby to make local discovery feel real, verified and easy to trust.</div>
+        </div>
+      </div>
+      <div class="founder-stats">
+        <div class="founder-stat"><strong id="founder-age">20</strong><span>Age</span></div>
+        <div class="founder-stat"><strong>05 Nov 2005</strong><span>DOB</span></div>
+        <div class="founder-stat"><strong>Verified Vision</strong><span>Trust Focus</span></div>
+      </div>
+    </div>
+
+    <div class="founder-card founder-highlight">
+      <div class="founder-card-title">Founder Note</div>
+      <div class="founder-card-copy">
+        Hi, I’m Pritam Rajput, the founder of Nearby. I built Nearby to solve a real problem — finding genuine nearby services.
+      </div>
+      <div class="founder-sign">
+        <div>
+          <div class="founder-sign-name">Pritam Rajput</div>
+          <div class="founder-sign-role">Founder, Nearby</div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);text-align:right;">Real problem.<br/>Real local trust.</div>
+      </div>
+    </div>
+
+    <div class="founder-proof">
+      <div class="founder-proof-card"><strong>Verified Data</strong><span>Focused on reducing fake and outdated listings.</span></div>
+      <div class="founder-proof-card"><strong>User-First</strong><span>Built from real search pain faced by everyday users.</span></div>
+      <div class="founder-proof-card"><strong>Trust Goal</strong><span>Clear founder identity helps users feel safer using Nearby.</span></div>
+    </div>
+
+    <div class="founder-card">
+      <div class="founder-card-title">Why I Started Nearby</div>
+      <div class="founder-story-flow">
+        <div class="founder-story-step">
+          <div class="founder-story-badge">1</div>
+          <div class="founder-story-text">
+            I built this app with one simple goal — to make life easier for people who move to new places.
+          </div>
+        </div>
+        <div class="founder-story-step">
+          <div class="founder-story-badge">2</div>
+          <div class="founder-story-text">
+            When someone comes from a village to a city, or visits an unknown place, it becomes very difficult to find basic things like rooms, shops, banks, ATMs, restaurants, or hotels. Most of the time, people feel confused and waste a lot of time searching.
+          </div>
+        </div>
+        <div class="founder-story-step">
+          <div class="founder-story-badge">3</div>
+          <div class="founder-story-text">
+            Nearby is created to solve this problem. With this app, anyone can easily find the services they need around them — quickly and without confusion.
+          </div>
+        </div>
+        <div class="founder-story-step">
+          <div class="founder-story-badge">4</div>
+          <div class="founder-story-text">
+            At the same time, I also wanted to help small business owners. Many local shop owners struggle because people cannot find them easily. Through Nearby, they can list their business and reach more customers.
+          </div>
+        </div>
+        <div class="founder-story-step">
+          <div class="founder-story-badge">5</div>
+          <div class="founder-story-text">
+            This way, both sides benefit — people find what they need, and shop owners grow their income.
+          </div>
+        </div>
+        <div class="founder-story-step">
+          <div class="founder-story-badge">6</div>
+          <div class="founder-story-text">
+            For property, I created a separate section where buyers and sellers can connect directly, without any middleman or broker.
+          </div>
+        </div>
+        <div class="founder-story-step">
+          <div class="founder-story-badge">7</div>
+          <div class="founder-story-text">
+            Nearby is not just an app. It is a small step towards making local discovery simple, honest, and helpful for everyone.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="founder-mission-band">
+      <strong>Mission for Nearby</strong>
+      <span>My mission is to build a platform where finding anything nearby feels easy, fast, and trustworthy.</span>
+    </div>
+
+    <div class="founder-card">
+      <div class="founder-card-title">Why This Builds Trust</div>
+      <div class="founder-card-copy">
+        When users know who is building the platform and what problem they are solving, it creates more confidence. Nearby is being shaped with a clear focus on authenticity, verified information, and a better experience for people searching around them.
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- PROFILE EDIT SCREEN -->
@@ -2335,7 +2499,7 @@ function normalizePropertyType(value) {
   return String(value).trim();
 }
 
-const SCREENS = ['login','home','rooms','properties','shops','list-shop','profile','explore','edit-profile','shop-detail','admin','tracking','payment'];
+const SCREENS = ['login','home','rooms','properties','shops','list-shop','profile','about-founder','explore','edit-profile','shop-detail','admin','tracking','payment'];
 const NAVMAP  = {home:'n-home',rooms:'n-rooms',properties:'n-properties',explore:'n-shops','list-shop':'n-list',profile:'n-profile'};
 const AVIDS   = ['av-home','av-shops','av-rooms','av-properties','av-list','av-profile','av-explore','av-admin'];
 
@@ -5519,6 +5683,34 @@ let screenHistory = ['login'];
 // _listShopPresetCat — stores category to auto-select when list-shop screen opens
 let _listShopPresetCat = '';
 
+function getFounderAge() {
+  const today = new Date();
+  const birthYear = 2005;
+  const birthMonthIndex = 10;
+  const birthDay = 5;
+  let age = today.getFullYear() - birthYear;
+  const hasHadBirthdayThisYear =
+    today.getMonth() > birthMonthIndex ||
+    (today.getMonth() === birthMonthIndex && today.getDate() >= birthDay);
+  if (!hasHadBirthdayThisYear) age -= 1;
+  return age;
+}
+
+function renderFounderProfile() {
+  const ageEl = document.getElementById('founder-age');
+  if (ageEl) ageEl.textContent = String(getFounderAge());
+  const page = document.querySelector('#about-founder .founder-page');
+  if (!page) return;
+  page.classList.remove('is-visible');
+  page.classList.add('is-animating');
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      page.classList.add('is-visible');
+      page.classList.remove('is-animating');
+    });
+  });
+}
+
 function switchScreen(id, presetCategory) {
   // If navigating to list-shop with a preset category, store it
   if (id === 'list-shop' && presetCategory) {
@@ -5559,6 +5751,7 @@ function switchScreen(id, presetCategory) {
   }
   // Pre-fill edit profile
   if (id === 'edit-profile') prefillEditProfile();
+  if (id === 'about-founder') renderFounderProfile();
 }
 
 function goBack() {
@@ -7108,6 +7301,29 @@ function updateLocationUI(value) {
   }
 }
 
+function extractIndianPincode(...sources) {
+  for (const source of sources) {
+    const text = String(source || '').replace(/\s+/g, ' ');
+    const match = text.match(/\b(\d{6})\b/);
+    if (match) return match[1];
+  }
+  return '';
+}
+
+function syncResolvedLocationUI(place = {}) {
+  updateLocationUI(place);
+
+  const pincodeField = document.getElementById('f-pincode');
+  if (pincodeField && !pincodeField.value && place.pincode) {
+    pincodeField.value = place.pincode;
+  }
+
+  const popupStatus = document.getElementById('loc-popup-status');
+  if (popupStatus && (place.fullAddress || place.label)) {
+    popupStatus.textContent = place.fullAddress || place.label;
+  }
+}
+
 function formatLiveLocationLabel(parts = {}) {
   const village = parts.area    || '';
   const city    = parts.city    || '';
@@ -7198,6 +7414,12 @@ async function getPlaceFromCoords(lat, lon) {
               if (/^\d{6}$/.test(p)) { pincode = p; break; }
             }
           }
+          if (!pincode) {
+            pincode = extractIndianPincode(
+              fullAddress,
+              ...gData.results.map(r => r.formatted_address || '')
+            );
+          }
 
           // Area: sublocality > neighborhood > locality
           area =
@@ -7255,6 +7477,7 @@ async function getPlaceFromCoords(lat, lon) {
 
       const rawPin = (a.postcode||am.postcode||aw.postcode||'').replace(/\s/g,'').trim();
       if (/^\d{6}$/.test(rawPin)) pincode = rawPin;
+      if (!pincode) pincode = extractIndianPincode(fullAddress, d?.name || '', dm?.display_name || '', dw?.display_name || '');
       console.log(`[Geocode] ✅ Nominatim fallback → pincode:${pincode}`);
     } catch(e) {
       console.warn('[Geocode] Nominatim failed:', e.message);
@@ -7295,8 +7518,7 @@ async function getPlaceFromCoords(lat, lon) {
         if (/^\d{6}$/.test(rawPin)) {
           pincode = rawPin;
         } else {
-          const m = JSON.stringify(bdc.localityInfo || {}).match(/\b(\d{6})\b/);
-          if (m) pincode = m[1];
+          pincode = extractIndianPincode(JSON.stringify(bdc.localityInfo || {}), bdc.locality || '', bdc.city || '');
         }
         if (pincode) console.log('[Geocode] ✅ BigDataCloud pincode:', pincode);
         // Fill area/city if still empty (Nominatim also failed)
@@ -7308,6 +7530,12 @@ async function getPlaceFromCoords(lat, lon) {
   }
 
   // ── Build result & cache ─────────────────────────────────────────
+  if (!pincode) pincode = extractIndianPincode(fullAddress, area, city, state);
+  if (!area && fullAddress) area = fullAddress.split(',').map(v => v.trim()).find(Boolean) || '';
+  if (!city && fullAddress) {
+    const parts = fullAddress.split(',').map(v => v.trim()).filter(Boolean);
+    city = parts[1] || parts[0] || '';
+  }
   const label  = formatLiveLocationLabel({ area, city, state, pincode });
   const result = { area, city, state, pincode, label, fullAddress };
 
@@ -7373,10 +7601,7 @@ async function updateLocDisplay(lat, lng) {
   if (prev) {
     const movedM = calcDist(prev.lat, prev.lng, lat, lng) * 1000;
     if (movedM < LOC_RENDER_THRESHOLD && LIVE_LOCATION_STATE.display) {
-      updateLocationUI(LIVE_LOCATION_STATE.display.label);
-      // Still update pincode field if missing
-      const pf = document.getElementById('f-pincode');
-      if (pf && !pf.value && LIVE_LOCATION_STATE.display?.pincode) pf.value = LIVE_LOCATION_STATE.display.pincode;
+      syncResolvedLocationUI(LIVE_LOCATION_STATE.display);
       return LIVE_LOCATION_STATE.display;
     }
   }
@@ -7385,22 +7610,14 @@ async function updateLocDisplay(lat, lng) {
     const place = await getPlaceFromCoords(lat, lng);
     LIVE_LOCATION_STATE.display = place;
     LIVE_LOCATION_STATE.lastRenderCoords = { lat, lng };
-    updateLocationUI(place.label);
-    // Update home screen pincode pill
-    const pincodeEl = document.getElementById('home-pincode');
-    if (pincodeEl) pincodeEl.textContent = place.pincode ? `PIN ${place.pincode}` : (place.area || place.city || '');
-    const areaEl = document.getElementById('home-area-name');
-    if (areaEl && (place.area || place.city)) areaEl.textContent = place.area || place.city;
-    // Auto-fill form pincode field
-    const pincodeField = document.getElementById('f-pincode');
-    if (pincodeField && !pincodeField.value && place?.pincode) pincodeField.value = place.pincode;
+    syncResolvedLocationUI(place);
     return place;
   } catch (err) {
     console.warn('[NearbyApp] Reverse geocode error:', err);
     const fallback = { area: '', city: '', pincode: '', label: `${lat.toFixed(4)}, ${lng.toFixed(4)}` };
     LIVE_LOCATION_STATE.display = fallback;
     LIVE_LOCATION_STATE.lastRenderCoords = { lat, lng };
-    updateLocationUI(fallback.label);
+    syncResolvedLocationUI(fallback);
     return fallback;
   }
 }
@@ -7657,7 +7874,12 @@ const LocSystem = {
       : 999;
     if (!_prevLoc || _movedM > LOC_MOVE_THRESHOLD) {
       LocSystem._lastGeocodedLoc = { lat, lng };
-      updateLocDisplay(lat, lng);
+      updateLocDisplay(lat, lng)
+        .then(place => {
+          const popupStatus = document.getElementById('loc-popup-status');
+          if (popupStatus && place) popupStatus.textContent = place.fullAddress || place.label || '';
+        })
+        .catch(() => {});
     } else if (LIVE_LOCATION_STATE.display?.label) {
       updateLocationUI(LIVE_LOCATION_STATE.display.label);
     }
@@ -9189,29 +9411,16 @@ function _updateLocationUIStub(value) {
 
 // getUserLocation unified above
 
-async function updateLocDisplay(lat, lng) {
-  // Unified updateLocDisplay — calls primary getPlaceFromCoords which handles all sources
-  try {
-    const place = await getPlaceFromCoords(lat, lng);
-    updateLocationUI(place);
-    // Update pincode fields and home screen
-    const pincodeField = document.getElementById('f-pincode');
-    if (pincodeField && !pincodeField.value && place.pincode) pincodeField.value = place.pincode;
-    const pincodeEl = document.getElementById('home-pincode');
-    if (pincodeEl) pincodeEl.textContent = place.pincode ? `PIN ${place.pincode}` : (place.area || place.city || '');
-    const areaEl = document.getElementById('home-area-name');
-    if (areaEl && (place.area || place.city)) areaEl.textContent = place.area || place.city;
-    return place;
-  } catch(err) {
-    console.warn('[updateLocDisplay] error:', err);
-    return { area:'', city:'', pincode:'', label:`${lat.toFixed(4)}, ${lng.toFixed(4)}` };
-  }
+async function updateLocDisplayCompat(lat, lng) {
+  // Backward-compat shim for older references. Primary implementation is defined above.
+  return updateLocDisplay(lat, lng);
 }
 
 
 function restoreCachedLiveLocation() {
   try {
-    const raw = localStorage.getItem(LIVE_LOCATION_CACHE_KEY_V3);
+    const cacheKey = (typeof LOC_CACHE_KEY !== 'undefined') ? LOC_CACHE_KEY : LIVE_LOCATION_CACHE_KEY_V3;
+    const raw = localStorage.getItem(cacheKey);
     if (!raw) return;
     const cached = JSON.parse(raw);
     if (!cached?.lat || !cached?.lng) return;
@@ -9222,8 +9431,9 @@ function restoreCachedLiveLocation() {
       LIVE_LOCATION_STATE.geocode = cached;
       LIVE_LOCATION_STATE.geocodeCoords = { lat: cached.lat, lng: cached.lng };
       LIVE_LOCATION_STATE.geocodeFetchedAt = cached.ts || Date.now();
+      LIVE_LOCATION_STATE.lastRenderCoords = { lat: cached.lat, lng: cached.lng };
     }
-    updateLocationUI(cached);
+    syncResolvedLocationUI(cached);
   } catch {}
 }
 
@@ -9322,139 +9532,7 @@ async function refreshTrackingRoute(recenter = false) {
   if (recenter) _trackMap.fitBounds([[start.lat, start.lng], [dest.lat, dest.lng]], { padding:[60,60] });
 }
 
-if (typeof LocSystem !== 'undefined') {
-  LocSystem.watchId = null;
-  LocSystem.isTracking = false;
-  LocSystem.sessionType = sessionStorage.getItem('loc_session') || null;
-  LocSystem._lastAcceptedTick = 0;
-
-  LocSystem.showSheet = function() {
-    document.getElementById('loc-perm-overlay')?.classList.remove('hidden');
-  };
-
-  LocSystem._hideSheet = function() {
-    document.getElementById('loc-perm-overlay')?.classList.add('hidden');
-  };
-
-  LocSystem.stopWatch = function() {
-    if (this.watchId !== null && navigator.geolocation) {
-      navigator.geolocation.clearWatch(this.watchId);
-      this.watchId = null;
-    }
-    this.isTracking = false;
-  };
-
-  LocSystem._onDenied = function(message = 'Enable location') {
-    this.stopWatch();
-    userLoc = null;
-    updateLocationUI(message);
-    renderShopLists();
-  };
-
-  LocSystem._onSuccess = async function(pos, mode) {
-    const { latitude: lat, longitude: lng, accuracy } = pos.coords;
-    userLoc = { lat, lng, accuracy };
-    if (typeof LIVE_LOCATION_STATE !== 'undefined') LIVE_LOCATION_STATE.coords = { lat, lng };
-    renderShopLists();
-    try {
-      const place = await updateLocDisplay(lat, lng);
-      const popupStatus = document.getElementById('loc-popup-status');
-      if (popupStatus) popupStatus.textContent = place.fullAddress || place.label;
-    } catch {}
-    if (mode === 'once') this.stopWatch();
-  };
-
-  LocSystem._onError = function(err) {
-    if (err?.code === 1) {
-      this._onDenied('Permission denied');
-      toast('Location permission denied', 'err');
-    } else if (err?.code === 2) {
-      document.getElementById('loc-gps-overlay')?.classList.remove('hidden');
-      toast('Please enable device location', 'err');
-    } else {
-      toast('Slow GPS response. Please try again.', 'err');
-    }
-  };
-
-  LocSystem._requestGPS = async function(mode) {
-    try {
-      const live = await getUserLocation({ highAccuracy: true, timeout: 12000, maximumAge: 5000 });
-      await this._onSuccess({ coords: { latitude: live.lat, longitude: live.lng, accuracy: live.accuracy } }, mode);
-      if (mode === 'always') this._startWatch();
-    } catch (err) {
-      this._onError({ code: String(err).includes('Permission') ? 1 : String(err).includes('unavailable') ? 2 : 3 });
-    }
-  };
-
-  LocSystem._startWatch = function() {
-    if (!navigator.geolocation) {
-      this._onDenied('Location unavailable');
-      return;
-    }
-    this.stopWatch();
-    this.isTracking = true;
-    this.watchId = navigator.geolocation.watchPosition(
-      pos => {
-        const now = Date.now();
-        if (this._lastAcceptedTick && (now - this._lastAcceptedTick) < LIVE_LOCATION_UPDATE_THROTTLE_MS) return;
-        this._lastAcceptedTick = now;
-        this._onSuccess(pos, 'always');
-      },
-      err => this._onError(err),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
-    );
-  };
-
-  LocSystem.grant = function(mode) {
-    this.sessionType = mode;
-    sessionStorage.setItem('loc_session', mode);
-    this._hideSheet();
-    this._requestGPS(mode);
-  };
-
-  LocSystem.deny = function() {
-    this._hideSheet();
-    sessionStorage.setItem('loc_session', 'deny');
-    this._onDenied('Location Off');
-  };
-
-  LocSystem.retryGps = function() {
-    document.getElementById('loc-gps-overlay')?.classList.add('hidden');
-    this._requestGPS(this.sessionType || 'once');
-  };
-
-  LocSystem.skipGps = function() {
-    document.getElementById('loc-gps-overlay')?.classList.add('hidden');
-    this._onDenied('Location Off');
-  };
-
-  LocSystem.init = function() {
-    restoreCachedLiveLocation();
-    if (badgeRefreshTimer) clearInterval(badgeRefreshTimer);
-    badgeRefreshTimer = setInterval(() => {
-      if (userLoc?.lat && userLoc?.lng) updateLocDisplay(userLoc.lat, userLoc.lng).catch(() => {});
-    }, LIVE_LOCATION_BADGE_REFRESH_MS);
-    if (sessionStorage.getItem('loc_session') === 'deny') {
-      updateLocationUI('Location Off');
-      return;
-    }
-    if (!userLoc) updateLocationUI('Tap to enable location');
-    if (navigator.permissions?.query) {
-      navigator.permissions.query({ name: 'geolocation' }).then(res => {
-        this.permState = res.state;
-        if (res.state === 'granted') {
-          this._requestGPS(this.sessionType || 'always');
-        } else if (!sessionStorage.getItem('loc_session')) {
-          this.showSheet();
-        }
-      }).catch(() => {
-        if (!sessionStorage.getItem('loc_session')) this.showSheet();
-      });
-    } else if (!sessionStorage.getItem('loc_session')) {
-      this.showSheet();
-    }
-  };
-}
+// Primary LocSystem implementation above is the only active source of truth.
 
 function allowLocation(type) {
   document.getElementById('loc-modal')?.classList.remove('open');
