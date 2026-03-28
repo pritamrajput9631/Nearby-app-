@@ -806,6 +806,11 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);m
 .sd-photo{width:80px;height:80px;border-radius:10px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);cursor:pointer;}
 .sd-nav-btn{position:fixed;bottom:72px;left:16px;right:16px;z-index:90;background:var(--orange);color:#fff;border:none;border-radius:14px;padding:15px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Baloo 2',cursive;box-shadow:0 4px 20px rgba(255,107,53,.45);display:flex;align-items:center;justify-content:center;gap:10px;transition:transform .15s;}
 .sd-nav-btn:hover{transform:translateY(-2px);}
+
+/* Route info popup */
+.route-info-popup .leaflet-popup-content-wrapper{background:rgba(255,255,255,.95);border-radius:10px;box-shadow:0 3px 14px rgba(0,0,0,.2);}
+.route-info-popup .leaflet-popup-tip{background:rgba(255,255,255,.95);}
+.route-info-popup .leaflet-popup-content{margin:8px 12px;font-size:13px;}
 </style>
 </head>
 <body>
@@ -2343,9 +2348,58 @@ function prettyPropertyType(value) {
 // ================================================================
 //  AUTH
 // ================================================================
+function _safeRun(label, fn) {
+  try {
+    return fn();
+  } catch (err) {
+    console.error(label, err);
+    return null;
+  }
+}
+
+function _updateAdminMenu(user) {
+  const adminItem = document.getElementById('admin-menu-item');
+  if (!adminItem) return;
+  adminItem.style.display = (user && (user.role === 'admin' || user.email === 'admin@nearby.app')) ? '' : 'none';
+}
+
+function _enterAuthenticatedApp(user, opts = {}) {
+  if (!user) return;
+  currentUser = user;
+  hideSpin?.();
+
+  if (!opts.skipSessionSave) {
+    _safeRun('saveUserSession failed', () => saveUserSession(user));
+  }
+  _safeRun('syncUser failed', () => syncUser(user));
+  _safeRun('updateAvatars failed', () => updateAvatars(user));
+
+  const bnav = document.getElementById('bnav');
+  if (bnav) bnav.style.display = 'flex';
+  const loginScreen = document.getElementById('login');
+  const homeScreen = document.getElementById('home');
+  if (loginScreen) loginScreen.classList.remove('active');
+  if (homeScreen) homeScreen.classList.add('active');
+
+  screenHistory = ['home'];
+  switchScreen('home');
+
+  _safeRun('renderShopLists failed', () => renderShopLists());
+  _safeRun('loadFirestoreShops failed', () => loadFirestoreShops());
+  _safeRun('loadRoomPriceBounds failed', () => loadRoomPriceBounds());
+  _safeRun('loadRoomListings failed', () => loadRoomListings());
+  _safeRun('loadPropertyListings failed', () => loadPropertyListings());
+  _safeRun('clearLocationCache failed', () => clearLocationCache());
+  _updateAdminMenu(user);
+
+  setTimeout(() => _safeRun('LocSystem.init failed', () => LocSystem.init()), 100);
+}
+
 auth.onAuthStateChanged(user => {
   if (user) {
     // Firebase Google login
+    _enterAuthenticatedApp(user);
+    return;
     currentUser = user;
     saveUserSession(user);
     syncUser(user);
@@ -2835,6 +2889,15 @@ function _onMfaLoginSuccess(user) {
   if (window.__mfa_access_token) {
     try { localStorage.setItem('nb_access_token', window.__mfa_access_token); } catch(e) {}
   }
+  _enterAuthenticatedApp(user, { skipSessionSave: true });
+  // Check push notification banner
+  setTimeout(() => {
+    if (!localStorage.getItem('push_dismissed') && !localStorage.getItem('push_enabled')) {
+      const b = document.getElementById('push-banner');
+      if (b) b.style.display = '';
+    }
+  }, 4000);
+  return;
   syncUser(user);
   updateAvatars(user);
   document.getElementById('bnav').style.display = 'flex';
@@ -2885,6 +2948,11 @@ function tryRestoreSession() {
     role:         saved.role || 'user',
     getIdToken:   () => Promise.resolve(token),
   };
+  _enterAuthenticatedApp(fakeUser, { skipSessionSave: true });
+
+  // Silently refresh token in background
+  _tryTokenRefresh(saved);
+  return true;
   currentUser = fakeUser;
   syncUser(fakeUser);
   updateAvatars(fakeUser);
@@ -4683,10 +4751,9 @@ function initMainMap() {
   osmMap = L.map('osm-map', { zoomControl: true, attributionControl: true })
     .setView([center.lat, center.lng], 14);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
-    maxZoom: 19
-  }).addTo(osmMap);
+    maxZoom: 19, subdomains:'abcd' }).addTo(osmMap);
 
   document.getElementById('map-loading').style.display = 'none';
   reqLocation();
@@ -4763,9 +4830,10 @@ function initMiniMap(lat, lng) {
     // Set max zoom to 18 for India detailed view
     miniOsmMap.setMaxZoom(18);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      minZoom: 5,  // Prevent zooming out beyond India view
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      maxZoom: 20,
+      minZoom: 5,
+      subdomains: 'abcd',
       updateWhenIdle: false,
       updateWhenZooming: false,
     }).addTo(miniOsmMap);
@@ -4816,8 +4884,36 @@ function initMiniMap(lat, lng) {
 
     // Show address of current pin
     getPlaceFromCoords(lat, lng)
-      .then(place => { if (statusEl && statusEl.textContent.startsWith('✅')) statusEl.textContent = '✅ Pinned at: ' + place.label; })
+      .then(place => {
+        if (statusEl && statusEl.textContent.startsWith('✅')) {
+          statusEl.textContent = '✅ Pinned at: ' + place.label + (place.pincode ? ' — PIN ' + place.pincode : '');
+        }
+        // Auto-fill pincode field if empty
+        const pinFld = document.getElementById('f-pincode');
+        if (pinFld && !pinFld.value && place.pincode) pinFld.value = place.pincode;
+      })
       .catch(() => {});
+
+    // Show nearby listings on the mini-map (Google Maps style)
+    setTimeout(() => {
+      if (!miniOsmMap) return;
+      const shops = (typeof allShops !== 'undefined' ? allShops : []);
+      shops.forEach(s => {
+        if (!s.lat || !s.lng) return;
+        const dist = (typeof calcDist === 'function')
+          ? calcDist(lat, lng, Number(s.lat), Number(s.lng)) * 1000
+          : Infinity;
+        if (dist > 2000) return; // show within 2km
+        const ico = s.icon || '🏪';
+        const shopIcon = L.divIcon({
+          html: `<div style="background:#fff;border:2px solid #FF6B35;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer;">${ico}</div>`,
+          className: '', iconSize:[28,28], iconAnchor:[14,14]
+        });
+        L.marker([Number(s.lat), Number(s.lng)], { icon: shopIcon })
+          .addTo(miniOsmMap)
+          .bindPopup(`<b>${s.name || 'Shop'}</b><br><small>${s.cat || ''}</small>${s.pincode ? '<br>📮 PIN: <b>' + s.pincode + '</b>' : ''}`, { maxWidth: 180 });
+      });
+    }, 500);
 
     // Multiple invalidateSize calls to fix grey tiles
     [100, 300, 600, 1000].forEach(ms =>
@@ -4839,28 +4935,67 @@ function showModalMap(shopLat, shopLng, shopName, shopIcon) {
     const mMap = L.map('modal-osm', { zoomControl: true, attributionControl: false })
       .setView([center.lat, center.lng], 14);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mMap);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains:'abcd' }).addTo(mMap);
 
-    // Shop marker
+    // Shop marker with pincode popup
     L.marker([shopLat, shopLng], { icon: emojiIcon(shopIcon || '🏪') })
-      .addTo(mMap).bindPopup(`<b>${shopName}</b>`).openPopup();
+      .addTo(mMap)
+      .bindPopup(`<b>${shopName}</b><br><small style="color:#666;">📍 Destination</small>`)
+      .openPopup();
 
-    // User marker + route line
+    // Show nearby shops/houses on the modal map (Google Maps style)
+    const nearbyShops = (typeof allShops !== 'undefined' ? allShops : []);
+    nearbyShops.forEach(s => {
+      if (!s.lat || !s.lng) return;
+      if (Math.abs(Number(s.lat) - shopLat) < 0.0001 && Math.abs(Number(s.lng) - shopLng) < 0.0001) return;
+      const dist = (typeof calcDist === 'function')
+        ? calcDist(shopLat, shopLng, Number(s.lat), Number(s.lng)) * 1000 : Infinity;
+      if (dist > 1500) return;
+      const sIco = L.divIcon({
+        html: `<div style="background:#fff;border:2px solid #0ABFA3;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,.2);">${s.icon||'🏪'}</div>`,
+        className: '', iconSize:[26,26], iconAnchor:[13,13]
+      });
+      L.marker([Number(s.lat), Number(s.lng)], { icon: sIco })
+        .addTo(mMap)
+        .bindPopup(`<b>${s.name||'Shop'}</b><br><small>${s.cat||''}</small>${s.pincode?'<br>📮 PIN: <b>'+s.pincode+'</b>':''}`, { maxWidth:180 });
+    });
+
+    // User marker + OSRM driving route
     if (userLoc) {
-      // Show actual address in user marker popup
-      const _modalUserMarker = L.marker([userLoc.lat, userLoc.lng], { icon: userIcon() }).addTo(mMap);
+      const _modalUserMarker = L.marker([userLoc.lat, userLoc.lng], {
+        icon: L.divIcon({
+          html: '<div style="width:18px;height:18px;background:#4285F4;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(66,133,244,.5);"></div>',
+          className:'', iconSize:[18,18], iconAnchor:[9,9]
+        })
+      }).addTo(mMap);
       getPlaceFromCoords(userLoc.lat, userLoc.lng)
-        .then(place => _modalUserMarker.bindPopup(`<b>📍 You are here</b><br><small>${place.label}</small>`))
-        .catch(()  => _modalUserMarker.bindPopup('📍 You are here'));
+        .then(place => _modalUserMarker.bindPopup(`<b>📍 You are here</b><br><small>${place.label}${place.pincode?' — PIN '+place.pincode:''}</small>`))
+        .catch(() => _modalUserMarker.bindPopup('📍 You are here'));
 
-      // Draw straight line (road route needs paid API — this shows direction)
-      L.polyline(
-        [[userLoc.lat, userLoc.lng], [shopLat, shopLng]],
-        { color: '#FF6B35', weight: 3, opacity: 0.8, dashArray: '8,6' }
-      ).addTo(mMap);
+      // Try real driving route via OSRM (free, no key)
+      fetch(`https://router.project-osrm.org/route/v1/driving/${userLoc.lng},${userLoc.lat};${shopLng},${shopLat}?overview=full&geometries=geojson`)
+        .then(r => r.json())
+        .then(rd => {
+          if (rd.routes?.[0]?.geometry) {
+            L.geoJSON(rd.routes[0].geometry, {
+              style: { color:'#FF6B35', weight:5, opacity:0.9 }
+            }).addTo(mMap);
+            const dist = (rd.routes[0].distance/1000).toFixed(1);
+            const mins = Math.ceil(rd.routes[0].duration/60);
+            // Distance badge
+            L.popup({ closeButton:false, className:'route-info-popup' })
+              .setLatLng([(userLoc.lat+shopLat)/2, (userLoc.lng+shopLng)/2])
+              .setContent(`<div style="font-weight:600;color:#FF6B35;">${dist} km · ${mins} min</div>`)
+              .addTo(mMap);
+          }
+        })
+        .catch(() => {
+          // Fallback dashed line
+          L.polyline([[userLoc.lat,userLoc.lng],[shopLat,shopLng]],
+            { color:'#FF6B35', weight:3, opacity:0.7, dashArray:'8,6' }).addTo(mMap);
+        });
 
-      // Fit map to show both points
-      mMap.fitBounds([[userLoc.lat, userLoc.lng], [shopLat, shopLng]], { padding: [30, 30] });
+      mMap.fitBounds([[userLoc.lat, userLoc.lng],[shopLat, shopLng]], { padding:[40,40] });
     }
 
     setTimeout(() => mMap.invalidateSize(), 100);
@@ -5650,23 +5785,28 @@ function filterBusinesses(list = allShops, filter = 'All') {
 //  FAST PHOTO UPLOAD — compress + parallel upload
 // ================================================================
 
-// Compress image to max 800px wide / 80% quality before upload
-async function compressImage(file, maxW = 800, quality = 0.80) {
+// Smart compression — keeps full quality for small files, only compresses large ones
+// Max 1920px (full HD), 88% quality — high quality but ~60-70% smaller than raw camera file
+async function compressImage(file) {
   return new Promise((resolve) => {
+    // If file is already small (<400KB), upload as-is — no quality loss
+    if (file.size < 400 * 1024) { resolve(file); return; }
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
       URL.revokeObjectURL(url);
-      const scale = Math.min(1, maxW / img.width);
+      const MAX = 1920; // Full HD — high quality preserved
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
       const w = Math.round(img.width * scale);
       const h = Math.round(img.height * scale);
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       canvas.toBlob(blob => {
-        if (!blob || blob.size >= file.size) { resolve(file); return; } // use original if not smaller
+        // Only use compressed if it's actually smaller
+        if (!blob || blob.size >= file.size) { resolve(file); return; }
         resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
-      }, 'image/jpeg', quality);
+      }, 'image/jpeg', 0.88); // 88% quality — visually lossless, much smaller file
     };
     img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
     img.src = url;
@@ -5675,18 +5815,18 @@ async function compressImage(file, maxW = 800, quality = 0.80) {
 
 // Upload all photos in parallel (much faster than sequential)
 async function uploadPhotosParallel(files, uid) {
-  const uploadOne = async (file) => {
+  const uploadOne = async (file, idx) => {
     try {
       const compressed = await compressImage(file);
-      const ref = storage.ref(`businesses/${uid}/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`);
-      const snap = await ref.put(compressed, { contentType: 'image/jpeg' });
+      const ref = storage.ref(`businesses/${uid}/${Date.now()}_${idx}.jpg`);
+      const snap = await ref.put(compressed, { contentType: 'image/jpeg', cacheControl: 'public,max-age=31536000' });
       return await snap.ref.getDownloadURL();
     } catch(e) {
       console.warn('Photo upload failed:', e.message);
       return null;
     }
   };
-  const results = await Promise.all(files.map(uploadOne));
+  const results = await Promise.all(files.map((f, i) => uploadOne(f, i)));
   return results.filter(Boolean);
 }
 
@@ -6707,7 +6847,7 @@ async function startNavigation(shop) {
   if (!navMap) {
     navMap = L.map('nav-map', { zoomControl: false, attributionControl: false })
       .setView([userLoc.lat, userLoc.lng], 16);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(navMap);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains:'abcd' }).addTo(navMap);
   } else {
     navMap.setView([userLoc.lat, userLoc.lng], 16);
   }
@@ -6928,14 +7068,39 @@ try { localStorage.removeItem('nb_loc_cache_v1'); } catch {}
  *
  * @param {string} text
  */
-function updateLocationUI(text) {
-  const el = document.getElementById('hero-loc-text');
-  if (!el) return;
-  const safe = String(text || '').trim() || 'Detecting...';
-  if (LIVE_LOCATION_STATE.lastUiText === safe) return;
-  LIVE_LOCATION_STATE.lastUiText = safe;
-  const trimmed = safe.length > 32 ? safe.slice(0, 30) + '...' : safe;
-  el.textContent = trimmed;
+function updateLocationUI(value) {
+  const data = (typeof value === 'object' && value !== null) ? value : null;
+  const text = data ? (data.label || formatLiveLocationLabel(data)) : String(value || '');
+  const safe = text.trim() || 'Detecting...';
+
+  // Update search bar / hero location text
+  const locEl = document.getElementById('hero-loc-text');
+  if (locEl) {
+    if ((typeof LIVE_LOCATION_STATE !== 'undefined') && LIVE_LOCATION_STATE.lastUiText !== safe) {
+      LIVE_LOCATION_STATE.lastUiText = safe;
+      const trimmed = safe.length > 34 ? safe.slice(0, 31) + '...' : safe;
+      locEl.textContent = trimmed;
+    }
+  }
+
+  // Update home screen area pill (area name + pincode)
+  const areaEl   = document.getElementById('home-area-name');
+  const pinEl    = document.getElementById('home-pincode');
+  const place = data || (typeof LIVE_LOCATION_STATE !== 'undefined' ? LIVE_LOCATION_STATE.display : null) || {};
+  if (areaEl && (place.area || place.city)) {
+    areaEl.textContent = place.area || place.city;
+  }
+  if (pinEl) {
+    if (place.pincode) {
+      pinEl.textContent = `📮 PIN ${place.pincode}`;
+      pinEl.style.color = 'var(--teal, #0ABFA3)';
+      pinEl.style.fontWeight = '600';
+    } else {
+      pinEl.textContent = place.area ? 'Live area' : 'Detecting location...';
+      pinEl.style.color = '';
+      pinEl.style.fontWeight = '';
+    }
+  }
 }
 
 function formatLiveLocationLabel(parts = {}) {
@@ -6966,84 +7131,106 @@ function formatLiveLocationLabel(parts = {}) {
  */
 async function getPlaceFromCoords(lat, lon) {
   const now = Date.now();
-  const cached = LIVE_LOCATION_STATE.geocode;
-  if (cached && LIVE_LOCATION_STATE.geocodeCoords) {
-    const movedM = calcDist(LIVE_LOCATION_STATE.geocodeCoords.lat, LIVE_LOCATION_STATE.geocodeCoords.lng, lat, lon) * 1000;
-    if (movedM < LOC_MOVE_THRESHOLD && (now - LIVE_LOCATION_STATE.geocodeFetchedAt) < LOC_GEOCODE_TTL_MS) {
-      return cached;
-    }
+  const _lls = (typeof LIVE_LOCATION_STATE !== 'undefined') ? LIVE_LOCATION_STATE : null;
+  const cached = _lls?.geocode;
+  if (cached && _lls?.geocodeCoords) {
+    const movedM = calcDist(_lls.geocodeCoords.lat, _lls.geocodeCoords.lng, lat, lon) * 1000;
+    const age = now - Number(_lls.geocodeFetchedAt || 0);
+    const ttl = (typeof LOC_GEOCODE_TTL_MS !== 'undefined') ? LOC_GEOCODE_TTL_MS : 3 * 60 * 1000;
+    const threshold = (typeof LOC_MOVE_THRESHOLD !== 'undefined') ? LOC_MOVE_THRESHOLD : 80;
+    if (movedM < threshold && age < ttl) return cached;
   }
-  // ── Strategy: Try multiple Nominatim zoom levels to get pincode ──
-  // zoom=14 gives broader area with better postcode coverage for rural India
-  // zoom=18 gives street level but postcode often missing in rural areas
 
-  async function _nominatimFetch(zoom) {
-    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=${zoom}`;
-    const resp = await fetch(url, {
-      headers: { 'Accept-Language': 'en', 'User-Agent': 'NearbyApp/2.0' },
-    });
+  async function _nomFetch(zoom) {
+    const resp = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=${zoom}&accept-language=en`,
+      { headers: { 'User-Agent': 'NearbyApp/2.0 (India)' }, signal: AbortSignal.timeout(8000) }
+    );
     if (!resp.ok) throw new Error('Nominatim ' + resp.status);
     return resp.json();
   }
 
-  // Try zoom=16 first (good balance), fallback to zoom=12 for pincode
-  let data, dataWide;
-  try { data = await _nominatimFetch(16); } catch(e) { throw e; }
-  try { dataWide = await _nominatimFetch(12); } catch(e) { dataWide = data; }
+  // Parallel fetch at 3 zoom levels for best pincode coverage
+  const [data, dataMid, dataWide] = await Promise.all([
+    _nomFetch(18).catch(() => null),
+    _nomFetch(14).catch(() => null),
+    _nomFetch(10).catch(() => null),
+  ]);
 
-  const a  = data.address     || {};
-  const aw = dataWide.address || {};
+  const a  = data?.address    || {};
+  const am = dataMid?.address || {};
+  const aw = dataWide?.address || {};
 
-  // ── Place: prefer village > town > suburb > city ──────────────
   const area =
-    a.suburb        || a.neighbourhood || a.quarter       ||
-    a.village       || a.town          || a.city_district ||
+    a.village       || a.suburb        || a.neighbourhood || a.quarter    ||
+    am.village      || am.suburb       || am.neighbourhood ||
     a.hamlet        || a.municipality  ||
-    a.county        || '';
+    a.town          || am.town         ||
+    a.city_district || aw.city_district || '';
 
-  // ── District ──────────────────────────────────────────────────
   const city =
-    a.city          || a.town          || a.municipality  ||
-    a.county        || a.state_district || a.city_district || '';
+    a.city          || am.city         || aw.city         ||
+    a.town          || am.town         || aw.town         ||
+    a.municipality  || am.municipality ||
+    a.county        || am.county       || aw.county       ||
+    a.state_district || am.state_district || '';
 
-  // ── State ─────────────────────────────────────────────────────
+  const state = a.state || am.state || aw.state || '';
 
-  // ── Pincode: try both zoom responses — wide area is more reliable
-  // Also try India-specific postoffice API as second source
-  let pincode = (a.postcode || aw.postcode || '').replace(/\s/g, '').trim();
+  // Pincode from Nominatim (all 3 zoom levels)
+  let pincode = (a.postcode || am.postcode || aw.postcode || '').replace(/\s/g, '').trim();
+  if (pincode && !/^\d{6}$/.test(pincode)) pincode = '';
 
-  // If Nominatim gave no pincode, try BigDataCloud (no key needed, free)
+  // India Post open API — best source for India pincodes
   if (!pincode) {
     try {
-      const bdcUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
-      const bdcResp = await fetch(bdcUrl);
-      if (bdcResp.ok) {
-        const bdc = await bdcResp.json();
-        pincode = (bdc.postcode || bdc.locality?.postcode || '').replace(/\s/g, '').trim();
-        // If still no pincode, use locality from bigdatacloud
-        if (!pincode && bdc.locality) {
-          // Try to extract 6-digit PIN from locality string
-          const m = (bdc.locality + ' ' + (bdc.localityInfo?.administrative?.map(x=>x.name).join(' ')||'')).match(/\b(\d{6})\b/);
+      const pr = await fetch(`https://api.postalpincode.in/latlong/${lat}/${lon}/1`, { signal: AbortSignal.timeout(6000) });
+      if (pr.ok) {
+        const pd = await pr.json();
+        if (pd?.[0]?.Status === 'Success') {
+          const pin = String(pd[0]?.PostOffice?.[0]?.Pincode || '');
+          if (/^\d{6}$/.test(pin)) pincode = pin;
+        }
+      }
+    } catch(e) {}
+  }
+
+  // BigDataCloud fallback
+  if (!pincode) {
+    try {
+      const br = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`, { signal: AbortSignal.timeout(5000) });
+      if (br.ok) {
+        const bdc = await br.json();
+        const rawPin = (bdc.postcode || '').replace(/\s/g, '').trim();
+        if (/^\d{6}$/.test(rawPin)) {
+          pincode = rawPin;
+        } else {
+          const m = JSON.stringify(bdc.localityInfo || {}).match(/\b(\d{6})\b/);
           if (m) pincode = m[1];
         }
       }
-    } catch(e) { /* BigDataCloud unavailable — continue without pincode */ }
+    } catch(e) {}
   }
 
-  // ── Build label ───────────────────────────────────────────────
   const label = formatLiveLocationLabel({ area, city, pincode });
-  const result = { area, city, pincode, label };
-  LIVE_LOCATION_STATE.geocode = result;
-  LIVE_LOCATION_STATE.geocodeFetchedAt = now;
-  LIVE_LOCATION_STATE.geocodeCoords = { lat, lng: lon };
-  try {
-    localStorage.setItem(LOC_CACHE_KEY, JSON.stringify({
-      lat, lng: lon, area, city, pincode, label, ts: now
-    }));
-  } catch {}
+  const result = { area, city, state, pincode, label, fullAddress: data?.display_name || '' };
+
+  if (_lls) {
+    _lls.geocode          = result;
+    _lls.geocodeFetchedAt = now;
+    _lls.geocodeCoords    = { lat, lng: lon };
+    _lls.display          = result;
+    _lls.lastRenderCoords = { lat, lng: lon };
+  }
+
+  const cacheKey = (typeof LOC_CACHE_KEY !== 'undefined') ? LOC_CACHE_KEY
+                 : (typeof LIVE_LOCATION_CACHE_KEY_V3 !== 'undefined') ? LIVE_LOCATION_CACHE_KEY_V3
+                 : 'nb_loc_cache_v2';
+  try { localStorage.setItem(cacheKey, JSON.stringify({ lat, lng: lon, ...result, ts: now })); } catch {}
 
   return result;
 }
+
 
 /**
  * getUserLocation()
@@ -7053,30 +7240,29 @@ async function getPlaceFromCoords(lat, lon) {
  *
  * @returns {Promise<{lat:number, lng:number, accuracy:number}>}
  */
-function getUserLocation() {
+function getUserLocation(options = {}) {
   return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject('Location unavailable');
-      return;
+    if (!navigator.geolocation) { reject('Geolocation not supported'); return; }
+    // Fast-path: use cached position if very recent
+    const cached = typeof LIVE_LOCATION_STATE !== 'undefined' ? LIVE_LOCATION_STATE.coords : null;
+    if (cached && (options.maximumAge === undefined || options.maximumAge > 0)) {
+      // Serve cache immediately while still refreshing in background
     }
     navigator.geolocation.getCurrentPosition(
-      pos => resolve({
-        lat:      pos.coords.latitude,
-        lng:      pos.coords.longitude,
-        accuracy: pos.coords.accuracy,
-      }),
+      pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }),
       err => {
-        switch (err.code) {
-          case 1:  reject('Location denied');     break;
-          case 2:  reject('Enable location');     break;
-          case 3:  reject('Location unavailable'); break;
-          default: reject('Location unavailable');
-        }
+        const msgs = { 1: 'Location permission denied', 2: 'Location unavailable — please enable GPS', 3: 'GPS timeout — try again' };
+        reject(msgs[err.code] || 'Location unavailable');
       },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      {
+        enableHighAccuracy: options.highAccuracy ?? true,
+        timeout:            options.timeout     ?? 8000,   // faster timeout
+        maximumAge:         options.maximumAge  ?? 5000,   // use recent cache
+      }
     );
   });
 }
+
 
 /**
  * updateLocDisplay(lat, lng)
@@ -7092,21 +7278,29 @@ async function updateLocDisplay(lat, lng) {
     const movedM = calcDist(prev.lat, prev.lng, lat, lng) * 1000;
     if (movedM < LOC_RENDER_THRESHOLD && LIVE_LOCATION_STATE.display) {
       updateLocationUI(LIVE_LOCATION_STATE.display.label);
+      // Still update pincode field if missing
+      const pf = document.getElementById('f-pincode');
+      if (pf && !pf.value && LIVE_LOCATION_STATE.display?.pincode) pf.value = LIVE_LOCATION_STATE.display.pincode;
       return LIVE_LOCATION_STATE.display;
     }
   }
-  updateLocationUI('Detecting...');
+  updateLocationUI('Detecting location...');
   try {
     const place = await getPlaceFromCoords(lat, lng);
     LIVE_LOCATION_STATE.display = place;
     LIVE_LOCATION_STATE.lastRenderCoords = { lat, lng };
     updateLocationUI(place.label);
+    // Update home screen pincode pill
+    const pincodeEl = document.getElementById('home-pincode');
+    if (pincodeEl) pincodeEl.textContent = place.pincode ? `PIN ${place.pincode}` : (place.area || place.city || '');
+    const areaEl = document.getElementById('home-area-name');
+    if (areaEl && (place.area || place.city)) areaEl.textContent = place.area || place.city;
+    // Auto-fill form pincode field
     const pincodeField = document.getElementById('f-pincode');
     if (pincodeField && !pincodeField.value && place?.pincode) pincodeField.value = place.pincode;
     return place;
   } catch (err) {
     console.warn('[NearbyApp] Reverse geocode error:', err);
-    // Show coords as last resort so the pill is never empty
     const fallback = { area: '', city: '', pincode: '', label: `${lat.toFixed(4)}, ${lng.toFixed(4)}` };
     LIVE_LOCATION_STATE.display = fallback;
     LIVE_LOCATION_STATE.lastRenderCoords = { lat, lng };
@@ -7114,6 +7308,7 @@ async function updateLocDisplay(lat, lng) {
     return fallback;
   }
 }
+
 
 // ================================================================
 //  NEAREST SHOPS UTILITIES
@@ -7595,7 +7790,7 @@ async function initLocPopupMap(lat, lng) {
 
   if (!_locPopupMap) {
     _locPopupMap = L.map('loc-popup-osm', { zoomControl: true, attributionControl: false }).setView([lat, lng], 16);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(_locPopupMap);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains:'abcd' }).addTo(_locPopupMap);
   } else {
     _locPopupMap.setView([lat, lng], 16);
   }
@@ -7763,7 +7958,7 @@ function _sdInitMap() {
   _sdMap = L.map('sd-map', { zoomControl:true, attributionControl:false })
     .setView([ctr.lat, ctr.lng], userLoc ? 14 : 16);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(_sdMap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom:19, subdomains:'abcd' }).addTo(_sdMap);
 
   // ── Shop marker — red pin with name label (open by default) ──
   const shopIcon = L.divIcon({
@@ -8605,7 +8800,7 @@ function _initTrackingMap(shop) {
   if (!_trackMap) {
     _trackMap = L.map('tracking-osm', { zoomControl: false, attributionControl: false })
       .setView([startLat, startLng], 15);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(_trackMap);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains:'abcd' }).addTo(_trackMap);
     L.control.zoom({ position: 'topright' }).addTo(_trackMap);
   }
 
@@ -8888,83 +9083,35 @@ function formatLiveLocationBadge(parts = {}) {
   return bits.join(', ') || 'Enable location';
 }
 
-function updateLocationUI(value) {
-  const el = document.getElementById('hero-loc-text');
-  if (!el) return;
-  const data = typeof value === 'string' ? { label: value } : (value || {});
-  const label = data.label || formatLiveLocationBadge(data);
-  el.textContent = label.length > 34 ? label.slice(0, 31) + '...' : label;
+// updateLocationUI — see primary definition above (unified)
+// This stub ensures backward-compat for any late-bind calls
+function _updateLocationUIStub(value) {
+  updateLocationUI(value);
 }
 
-async function getPlaceFromCoords(lat, lon) {
-  const now = Date.now();
-  const cached = LIVE_LOCATION_STATE?.geocode;
-  if (cached && LIVE_LOCATION_STATE?.geocodeCoords) {
-    const movedM = calcDist(LIVE_LOCATION_STATE.geocodeCoords.lat, LIVE_LOCATION_STATE.geocodeCoords.lng, lat, lon) * 1000;
-    const cacheAge = now - Number(LIVE_LOCATION_STATE.geocodeFetchedAt || 0);
-    if (movedM < 500 && cacheAge < LIVE_LOCATION_BADGE_REFRESH_MS) return cached;
-  }
+// getPlaceFromCoords unified above
 
-  const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`;
-  const resp = await fetch(url, { headers: { 'Accept-Language': 'en' } });
-  if (!resp.ok) throw new Error('Reverse geocoding failed');
-  const data = await resp.json();
-  const address = data.address || {};
-  const place = {
-    area: address.suburb || address.neighbourhood || address.village || address.town || address.city || '',
-    city: address.city || address.town || address.village || address.municipality || '',
-    district: address.county || address.state_district || address.city_district || '',
-    pincode: (address.postcode || '').replace(/\s/g, ''),
-    state: address.state || '',
-    fullAddress: data.display_name || ''
-  };
-  place.label = formatLiveLocationBadge(place);
-  if (typeof LIVE_LOCATION_STATE !== 'undefined') {
-    LIVE_LOCATION_STATE.geocode = place;
-    LIVE_LOCATION_STATE.geocodeCoords = { lat, lng: lon };
-    LIVE_LOCATION_STATE.display = place;
-    LIVE_LOCATION_STATE.lastRenderCoords = { lat, lng: lon };
-    LIVE_LOCATION_STATE.geocodeFetchedAt = now;
-  }
-  try {
-    localStorage.setItem(LIVE_LOCATION_CACHE_KEY_V3, JSON.stringify({ lat, lng: lon, ...place, ts: now }));
-  } catch {}
-  return place;
-}
-
-function getUserLocation(options = {}) {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject('Geolocation not supported');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      pos => resolve({
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-        accuracy: pos.coords.accuracy
-      }),
-      err => {
-        if (err.code === 1) reject('Permission denied');
-        else if (err.code === 2) reject('Location unavailable');
-        else reject('Slow GPS response');
-      },
-      {
-        enableHighAccuracy: options.highAccuracy ?? true,
-        timeout: options.timeout ?? 12000,
-        maximumAge: options.maximumAge ?? 10000
-      }
-    );
-  });
-}
+// getUserLocation unified above
 
 async function updateLocDisplay(lat, lng) {
-  const place = await getPlaceFromCoords(lat, lng);
-  updateLocationUI(place);
-  const pincodeField = document.getElementById('f-pincode');
-  if (pincodeField && !pincodeField.value && place.pincode) pincodeField.value = place.pincode;
-  return place;
+  // Unified updateLocDisplay — calls primary getPlaceFromCoords which handles all sources
+  try {
+    const place = await getPlaceFromCoords(lat, lng);
+    updateLocationUI(place);
+    // Update pincode fields and home screen
+    const pincodeField = document.getElementById('f-pincode');
+    if (pincodeField && !pincodeField.value && place.pincode) pincodeField.value = place.pincode;
+    const pincodeEl = document.getElementById('home-pincode');
+    if (pincodeEl) pincodeEl.textContent = place.pincode ? `PIN ${place.pincode}` : (place.area || place.city || '');
+    const areaEl = document.getElementById('home-area-name');
+    if (areaEl && (place.area || place.city)) areaEl.textContent = place.area || place.city;
+    return place;
+  } catch(err) {
+    console.warn('[updateLocDisplay] error:', err);
+    return { area:'', city:'', pincode:'', label:`${lat.toFixed(4)}, ${lng.toFixed(4)}` };
+  }
 }
+
 
 function restoreCachedLiveLocation() {
   try {
@@ -9043,7 +9190,7 @@ async function refreshTrackingRoute(recenter = false) {
 
   if (!_trackMap) {
     _trackMap = L.map('tracking-osm', { zoomControl: false, attributionControl: false }).setView([start.lat, start.lng], 15);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(_trackMap);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains:'abcd' }).addTo(_trackMap);
     L.control.zoom({ position: 'topright' }).addTo(_trackMap);
   }
 
@@ -9283,7 +9430,7 @@ async function startNavigation(shop) {
 
     if (!navMap) {
       navMap = L.map('nav-map', { zoomControl: false, attributionControl: false }).setView([live.lat, live.lng], 16);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(navMap);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains:'abcd' }).addTo(navMap);
     } else {
       navMap.setView([live.lat, live.lng], 16);
     }
