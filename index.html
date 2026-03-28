@@ -7048,6 +7048,11 @@ const LOC_CACHE_KEY = 'nb_loc_cache_v2';
 const LOC_MOVE_THRESHOLD = 30; // metres
 const LOC_RENDER_THRESHOLD = 15; // metres
 const LOC_GEOCODE_TTL_MS = 3 * 60 * 1000;
+
+// ── Google Maps Geocoding API ──────────────────────────────────────
+// Get key → https://console.cloud.google.com → Enable "Geocoding API"
+// Restrict key to your domain for security
+const GOOGLE_GEOCODING_API_KEY = 'AIzaSyCXj_vEu8vUVVOnSiMmVsqzCCYD8k7yR68';
 const LIVE_LOCATION_STATE = {
   coords: null,
   geocodeCoords: null,
@@ -7104,12 +7109,21 @@ function updateLocationUI(value) {
 }
 
 function formatLiveLocationLabel(parts = {}) {
-  const area = parts.area || parts.city || parts.locality || '';
+  const village = parts.area    || '';
+  const city    = parts.city    || '';
+  const state   = parts.state   || '';
   const pincode = String(parts.pincode || '').trim();
-  if (area && pincode) return `${area}, ${pincode}`;
-  if (area) return area;
-  if (parts.city && pincode) return `${parts.city}, ${pincode}`;
-  return pincode || 'Location found';
+
+  // Build: "Village, City, State — 814112"
+  const placeParts = [village, city, state].filter(Boolean);
+  // Remove duplicates (sometimes village === city)
+  const unique = placeParts.filter((v, i, a) => a.indexOf(v) === i);
+  const placeStr = unique.join(', ');
+
+  if (placeStr && pincode) return `${placeStr} — ${pincode}`;
+  if (placeStr) return placeStr;
+  if (pincode)  return `PIN ${pincode}`;
+  return 'Location found';
 }
 
 /**
@@ -7132,56 +7146,124 @@ function formatLiveLocationLabel(parts = {}) {
 async function getPlaceFromCoords(lat, lon) {
   const now = Date.now();
   const _lls = (typeof LIVE_LOCATION_STATE !== 'undefined') ? LIVE_LOCATION_STATE : null;
+
+  // ── Cache hit: skip API if coords haven't moved & cache is fresh ──
   const cached = _lls?.geocode;
   if (cached && _lls?.geocodeCoords) {
-    const movedM = calcDist(_lls.geocodeCoords.lat, _lls.geocodeCoords.lng, lat, lon) * 1000;
-    const age = now - Number(_lls.geocodeFetchedAt || 0);
-    const ttl = (typeof LOC_GEOCODE_TTL_MS !== 'undefined') ? LOC_GEOCODE_TTL_MS : 3 * 60 * 1000;
-    const threshold = (typeof LOC_MOVE_THRESHOLD !== 'undefined') ? LOC_MOVE_THRESHOLD : 80;
-    if (movedM < threshold && age < ttl) return cached;
+    const movedM  = calcDist(_lls.geocodeCoords.lat, _lls.geocodeCoords.lng, lat, lon) * 1000;
+    const age     = now - Number(_lls.geocodeFetchedAt || 0);
+    const ttl     = (typeof LOC_GEOCODE_TTL_MS    !== 'undefined') ? LOC_GEOCODE_TTL_MS    : 3 * 60 * 1000;
+    const thresh  = (typeof LOC_MOVE_THRESHOLD    !== 'undefined') ? LOC_MOVE_THRESHOLD    : 80;
+    if (movedM < thresh && age < ttl) return cached;
   }
 
-  async function _nomFetch(zoom) {
-    const resp = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=${zoom}&accept-language=en`,
-      { headers: { 'User-Agent': 'NearbyApp/2.0 (India)' }, signal: AbortSignal.timeout(8000) }
-    );
-    if (!resp.ok) throw new Error('Nominatim ' + resp.status);
-    return resp.json();
+  let area = '', city = '', state = '', pincode = '', fullAddress = '';
+
+  // ════════════════════════════════════════════════════════════════
+  //  PRIMARY — Google Maps Geocoding API
+  //  Most accurate pincode + address for India. Single fast call.
+  //  Docs: https://developers.google.com/maps/documentation/geocoding
+  // ════════════════════════════════════════════════════════════════
+  const googleKey = (typeof GOOGLE_GEOCODING_API_KEY !== 'undefined') ? GOOGLE_GEOCODING_API_KEY : '';
+  let googleOk = false;
+
+  if (googleKey && googleKey !== 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+    try {
+      const gResp = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${googleKey}&language=en&region=IN`,
+        { signal: AbortSignal.timeout(8000) }
+      );
+      if (gResp.ok) {
+        const gData = await gResp.json();
+        if (gData.status === 'OK' && gData.results?.length) {
+
+          // Helper: extract a specific address component type
+          const getComp = (results, ...types) => {
+            for (const result of results) {
+              for (const type of types) {
+                const c = (result.address_components || []).find(c => c.types.includes(type));
+                if (c?.long_name) return c.long_name;
+              }
+            }
+            return '';
+          };
+
+          fullAddress = gData.results[0].formatted_address || '';
+
+          // Pincode — scan ALL results, postal_code is the most reliable
+          for (const r of gData.results) {
+            const pc = (r.address_components || []).find(c => c.types.includes('postal_code'));
+            if (pc) {
+              const p = pc.long_name.replace(/\s/g, '').trim();
+              if (/^\d{6}$/.test(p)) { pincode = p; break; }
+            }
+          }
+
+          // Area: sublocality > neighborhood > locality
+          area =
+            getComp(gData.results, 'sublocality_level_2') ||
+            getComp(gData.results, 'sublocality_level_1') ||
+            getComp(gData.results, 'sublocality')         ||
+            getComp(gData.results, 'neighborhood')        ||
+            getComp(gData.results, 'locality')            || '';
+
+          // City: locality > admin level 3 > admin level 2
+          city =
+            getComp(gData.results, 'locality')                    ||
+            getComp(gData.results, 'administrative_area_level_3') ||
+            getComp(gData.results, 'administrative_area_level_2') || '';
+
+          // State
+          state = getComp(gData.results, 'administrative_area_level_1') || '';
+
+          googleOk = true;
+          console.log(`[Geocode] ✅ Google Maps → pincode:${pincode} area:${area} city:${city}`);
+        } else {
+          console.warn('[Geocode] Google Maps status:', gData.status, gData.error_message || '');
+        }
+      }
+    } catch(e) {
+      console.warn('[Geocode] Google Maps failed, falling back:', e.message);
+    }
   }
 
-  // Parallel fetch at 3 zoom levels for best pincode coverage
-  const [data, dataMid, dataWide] = await Promise.all([
-    _nomFetch(18).catch(() => null),
-    _nomFetch(14).catch(() => null),
-    _nomFetch(10).catch(() => null),
-  ]);
+  // ════════════════════════════════════════════════════════════════
+  //  FALLBACK 1 — Nominatim (OpenStreetMap) — free, no key needed
+  //  Used when Google key is missing or Google call failed
+  // ════════════════════════════════════════════════════════════════
+  if (!googleOk) {
+    try {
+      async function _nomFetch(zoom) {
+        const r = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=${zoom}&accept-language=en`,
+          { headers: { 'User-Agent': 'NearbyApp/2.0 (India)' }, signal: AbortSignal.timeout(8000) }
+        );
+        if (!r.ok) throw new Error('Nominatim ' + r.status);
+        return r.json();
+      }
+      const [d, dm, dw] = await Promise.all([
+        _nomFetch(18).catch(() => null),
+        _nomFetch(14).catch(() => null),
+        _nomFetch(10).catch(() => null),
+      ]);
+      const a = d?.address || {}, am = dm?.address || {}, aw = dw?.address || {};
 
-  const a  = data?.address    || {};
-  const am = dataMid?.address || {};
-  const aw = dataWide?.address || {};
+      area = a.village||a.suburb||a.neighbourhood||a.quarter||am.village||am.suburb||am.neighbourhood||a.hamlet||a.municipality||a.town||am.town||a.city_district||aw.city_district||'';
+      city = a.city||am.city||aw.city||a.town||am.town||aw.town||a.municipality||am.municipality||a.county||am.county||aw.county||a.state_district||am.state_district||'';
+      state = a.state||am.state||aw.state||'';
+      fullAddress = d?.display_name || '';
 
-  const area =
-    a.village       || a.suburb        || a.neighbourhood || a.quarter    ||
-    am.village      || am.suburb       || am.neighbourhood ||
-    a.hamlet        || a.municipality  ||
-    a.town          || am.town         ||
-    a.city_district || aw.city_district || '';
+      const rawPin = (a.postcode||am.postcode||aw.postcode||'').replace(/\s/g,'').trim();
+      if (/^\d{6}$/.test(rawPin)) pincode = rawPin;
+      console.log(`[Geocode] ✅ Nominatim fallback → pincode:${pincode}`);
+    } catch(e) {
+      console.warn('[Geocode] Nominatim failed:', e.message);
+    }
+  }
 
-  const city =
-    a.city          || am.city         || aw.city         ||
-    a.town          || am.town         || aw.town         ||
-    a.municipality  || am.municipality ||
-    a.county        || am.county       || aw.county       ||
-    a.state_district || am.state_district || '';
-
-  const state = a.state || am.state || aw.state || '';
-
-  // Pincode from Nominatim (all 3 zoom levels)
-  let pincode = (a.postcode || am.postcode || aw.postcode || '').replace(/\s/g, '').trim();
-  if (pincode && !/^\d{6}$/.test(pincode)) pincode = '';
-
-  // India Post open API — best source for India pincodes
+  // ════════════════════════════════════════════════════════════════
+  //  FALLBACK 2 — India Post API (pincode only, if still missing)
+  // ════════════════════════════════════════════════════════════════
   if (!pincode) {
     try {
       const pr = await fetch(`https://api.postalpincode.in/latlong/${lat}/${lon}/1`, { signal: AbortSignal.timeout(6000) });
@@ -7189,31 +7271,45 @@ async function getPlaceFromCoords(lat, lon) {
         const pd = await pr.json();
         if (pd?.[0]?.Status === 'Success') {
           const pin = String(pd[0]?.PostOffice?.[0]?.Pincode || '');
-          if (/^\d{6}$/.test(pin)) pincode = pin;
+          if (/^\d{6}$/.test(pin)) {
+            pincode = pin;
+            if (!area)  area  = pd[0]?.PostOffice?.[0]?.Name     || '';
+            if (!city)  city  = pd[0]?.PostOffice?.[0]?.District || '';
+            if (!state) state = pd[0]?.PostOffice?.[0]?.State    || '';
+            console.log('[Geocode] ✅ India Post pincode:', pincode);
+          }
         }
       }
     } catch(e) {}
   }
 
-  // BigDataCloud fallback
+  // ════════════════════════════════════════════════════════════════
+  //  FALLBACK 3 — BigDataCloud (pincode only, if still missing)
+  // ════════════════════════════════════════════════════════════════
   if (!pincode) {
     try {
       const br = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`, { signal: AbortSignal.timeout(5000) });
       if (br.ok) {
         const bdc = await br.json();
-        const rawPin = (bdc.postcode || '').replace(/\s/g, '').trim();
+        const rawPin = (bdc.postcode || '').replace(/\s/g,'').trim();
         if (/^\d{6}$/.test(rawPin)) {
           pincode = rawPin;
         } else {
           const m = JSON.stringify(bdc.localityInfo || {}).match(/\b(\d{6})\b/);
           if (m) pincode = m[1];
         }
+        if (pincode) console.log('[Geocode] ✅ BigDataCloud pincode:', pincode);
+        // Fill area/city if still empty (Nominatim also failed)
+        if (!area && bdc.locality)  area  = bdc.locality;
+        if (!city && bdc.city)      city  = bdc.city;
+        if (!state && bdc.principalSubdivision) state = bdc.principalSubdivision;
       }
     } catch(e) {}
   }
 
-  const label = formatLiveLocationLabel({ area, city, pincode });
-  const result = { area, city, state, pincode, label, fullAddress: data?.display_name || '' };
+  // ── Build result & cache ─────────────────────────────────────────
+  const label  = formatLiveLocationLabel({ area, city, state, pincode });
+  const result = { area, city, state, pincode, label, fullAddress };
 
   if (_lls) {
     _lls.geocode          = result;
@@ -7472,9 +7568,9 @@ const LocSystem = {
     this._setAccChip('searching', 'Getting GPS signal...');
 
     const opts = {
-      enableHighAccuracy: false,  // Faster detection with standard accuracy
-      timeout: 5000,              // Reduced from 16s to 5s for quick response
-      maximumAge: 20000,  // Allow cached location up to 20 seconds old for speed
+      enableHighAccuracy: true,   // High accuracy GPS for correct village/pincode
+      timeout: 10000,
+      maximumAge: 5000,
     };
 
     if (mode === 'once') {
@@ -7504,7 +7600,7 @@ const LocSystem = {
     navigator.geolocation.getCurrentPosition(
       pos => this._onSuccess(pos, this.sessionType || 'always'),
       ()  => {},  // ignore — watch will retry
-      { enableHighAccuracy: false, maximumAge: 30000, timeout: 4000 }  // Fast: 4s, allow cached pos up to 30s
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 8000 }  // High accuracy first fix
     );
 
     // Step 2: Start continuous watch for movement updates (with moderate accuracy)
@@ -7512,9 +7608,9 @@ const LocSystem = {
       pos => this._onSuccess(pos, this.sessionType || 'always'),
       err => this._onError(err),
       {
-        enableHighAccuracy: false,  // Moderate accuracy for faster response
-        maximumAge: 10000,      // Can use cached position up to 10 seconds old
-        timeout: 8000,          // Reduced timeout from 20s to 8s
+        enableHighAccuracy: true,   // Full GPS accuracy for village/pincode detection
+        maximumAge: 5000,
+        timeout: 10000,
       }
     );
   },
